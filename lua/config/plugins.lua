@@ -1,13 +1,10 @@
 return {
     { 'numToStr/Comment.nvim', opts = {}, lazy = false },
-    { 
-      'williamboman/mason.nvim',
-      config = function ()
-        require("mason").setup()
-      end
-    },
+    { 'williamboman/mason.nvim', },
+    { 'williamboman/mason-lspconfig.nvim' },
+    { 'neovim/nvim-lspconfig' },
     { 'nvim-tree/nvim-web-devicons'},
-    { 
+    {
       'lewis6991/gitsigns.nvim',
       config = function ()
         require('gitsigns').setup {
@@ -15,6 +12,21 @@ return {
           current_line_blame_formatter = '<author>, <author_time:%R> • <summary>',
         }
       end
+    },
+    {
+       "folke/trouble.nvim",
+       dependencies = { "nvim-tree/nvim-web-devicons" },
+       config = function ()
+         require('trouble').setup {
+            signs = {
+               error = "",
+               warning = "",
+               hint = "",
+               information = "",
+               other = "",
+            },
+         }
+       end
     },
     { 
       'nvim-telescope/telescope.nvim',
