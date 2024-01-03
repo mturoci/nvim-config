@@ -14,11 +14,12 @@ vim.opt.rtp:prepend(lazypath)
 require("config.options")
 require("lazy").setup("config.plugins")
 
+-- TODO: Move into plugins.lua.
 -- Mason - LSP support.
 require("mason").setup()
 require("mason-lspconfig").setup()
 require("mason-lspconfig").setup_handlers {
-  function(server_name)    -- default handler (optional)
+  function(server_name)
     require("lspconfig")[server_name].setup {}
   end,
   -- Next, you can provide a dedicated handler for specific servers.
@@ -27,6 +28,17 @@ require("mason-lspconfig").setup_handlers {
   --     require("rust-tools").setup {}
   -- end
 }
+local lspconfig = require("lspconfig")
+lspconfig.lua_ls.setup({
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = { 'vim' }
+      }
+    }
+  }
+})
+
 
 require("config.keymaps")
 require("config.appearance")
