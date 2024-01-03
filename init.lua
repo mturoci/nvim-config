@@ -13,20 +13,5 @@ vim.opt.rtp:prepend(lazypath)
 
 require("config.options")
 require("lazy").setup("config.plugins")
--- TODO: Move into a separate file.
-local actions = require('telescope.actions')
-require("telescope").setup({
- defaults = {
-    mappings = {
-      n = {
-        ["<S-CR>"] = actions.select_vertical,
-      },
-      i = {
-        ["<S-CR>"] = actions.select_vertical,
-      }
-    }
-  }
-})
-require("mason").setup()
 require("config.keymaps")
 
