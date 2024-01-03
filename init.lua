@@ -29,3 +29,4 @@ require("mason-lspconfig").setup_handlers {
 }
 
 require("config.keymaps")
+require("config.appearance")

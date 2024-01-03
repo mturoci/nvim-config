@@ -3,7 +3,7 @@ return {
     { 'williamboman/mason.nvim', },
     { 'williamboman/mason-lspconfig.nvim' },
     { 'neovim/nvim-lspconfig' },
-    { 'nvim-tree/nvim-web-devicons'},
+    { 'nvim-tree/nvim-web-devicons'}, 
     {
       'lewis6991/gitsigns.nvim',
       config = function ()
