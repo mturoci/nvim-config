@@ -14,3 +14,5 @@ keymap("n", "<C-k>", "<C-w>k", silent)
 keymap("n", "<C-l>", "<C-w>l", silent)
 -- TODO: Remap to leader + w instead of CTRL + w
 keymap("n", "<C-w>", "<C-w>w", silent)
+
+keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
