@@ -1,5 +1,9 @@
 return {
-  { 'numToStr/Comment.nvim',            opts = {}, lazy = false },
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+    lazy = false,
+  },
   { 'williamboman/mason.nvim', },
   { 'williamboman/mason-lspconfig.nvim' },
   { 'neovim/nvim-lspconfig' },
