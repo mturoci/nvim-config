@@ -95,6 +95,12 @@ return {
     end
   },
   {
+    'natecraddock/telescope-zf-native.nvim',
+    config = function()
+      require("telescope").load_extension("zf-native")
+    end
+  },
+  {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
