@@ -111,6 +111,10 @@ return {
           mappings = {
             n = { ["<S-CR>"] = actions.select_vertical, },
             i = { ["<S-CR>"] = actions.select_vertical, }
+          },
+          sorting_strategy = "ascending",
+          layout_config = {
+            prompt_position = "top"
           }
         }
       })
