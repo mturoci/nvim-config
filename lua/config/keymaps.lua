@@ -4,7 +4,7 @@ local builtin = require('telescope.builtin')
 
 -- Telescope find/grep files
 keymap('n', '<leader>p', builtin.find_files, {})
-keymap('n', '<leader>fg', builtin.live_grep, {})
+keymap('n', '<leader>f', builtin.live_grep, {})
 keymap('n', '<leader>g', builtin.git_status, {})
 
 -- Window management.

@@ -99,7 +99,13 @@ return {
 
       require("telescope").setup({
         pickers = {
-          find_files = { path_display = filenameFirst, }
+          git_status = { path_display = filenameFirst, },
+          find_files = { path_display = filenameFirst, },
+          live_grep = {
+            additional_args = function()
+              return { "--max-count=1" }
+            end
+          },
         },
         defaults = {
           mappings = {
