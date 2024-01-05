@@ -113,9 +113,7 @@ return {
             i = { ["<S-CR>"] = actions.select_vertical, }
           },
           sorting_strategy = "ascending",
-          layout_config = {
-            prompt_position = "top"
-          },
+          layout_config = { prompt_position = "top" },
           prompt_prefix = " "
         }
       })

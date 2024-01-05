@@ -45,7 +45,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
 })
 
 -- Show help in a new buffer.
-
 vim.api.nvim_create_autocmd('BufWinEnter', {
   pattern = '*',
   callback = function(event)
