@@ -99,8 +99,6 @@ return {
 
       require("telescope").setup({
         pickers = {
-          git_status = { path_display = filenameFirst, },
-          find_files = { path_display = filenameFirst, },
           live_grep = {
             additional_args = function()
               return { "--max-count=1" }
@@ -114,7 +112,9 @@ return {
           },
           sorting_strategy = "ascending",
           layout_config = { prompt_position = "top" },
-          prompt_prefix = " "
+          prompt_prefix = " ",
+          -- TODO: Doesn't work for git_status. Needs to be fixed in telescope itself.
+          path_display = filenameFirst,
         }
       })
     end
