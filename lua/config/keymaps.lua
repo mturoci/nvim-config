@@ -4,6 +4,11 @@ local builtin = require('telescope.builtin')
 local silent_shell = function(cmd)
   return ':!' .. cmd .. ' > /dev/null 2>&1<CR> '
 end
+local commit = function()
+  local last_commit = vim.fn.system('git log -1 --pretty=%B')
+  local message = vim.fn.input('Commit message: ', last_commit)
+  vim.cmd('!git commit -am "' .. message .. '"')
+end
 
 -- Telescope find/grep files.
 keymap('n', '<leader>p', builtin.find_files, {})
@@ -25,6 +30,7 @@ keymap('n', '<leader>gs', silent_shell('git stash'), {})
 keymap('n', '<leader>gp', silent_shell('git stash pop'), {})
 keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
 keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
+keymap('n', '<leader>gc', commit, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights

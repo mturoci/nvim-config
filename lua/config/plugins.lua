@@ -8,6 +8,7 @@ return {
   { 'williamboman/mason-lspconfig.nvim' },
   { 'neovim/nvim-lspconfig' },
   { 'nvim-tree/nvim-web-devicons' },
+  { 'github/copilot.vim' },
   {
     'lewis6991/gitsigns.nvim',
     config = function()
