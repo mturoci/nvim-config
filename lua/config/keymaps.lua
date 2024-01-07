@@ -1,8 +1,11 @@
 local keymap = vim.keymap.set
 local silent = { silent = true }
 local builtin = require('telescope.builtin')
+local silent_shell = function(cmd)
+  return ':!' .. cmd .. ' > /dev/null 2>&1<CR> '
+end
 
--- Telescope find/grep files
+-- Telescope find/grep files.
 keymap('n', '<leader>p', builtin.find_files, {})
 keymap('n', '<leader>f', builtin.live_grep, {})
 keymap('n', '<leader>g', require('config.functions').my_git_status, {})
@@ -13,12 +16,20 @@ keymap("n", "<C-h>", "<C-w>h", silent)
 keymap("n", "<C-j>", "<C-w>j", silent)
 keymap("n", "<C-k>", "<C-w>k", silent)
 keymap("n", "<C-l>", "<C-w>l", silent)
--- TODO: Remap to leader + w instead of CTRL + w
-keymap("n", "<C-w>", "<C-w>w", silent)
+keymap("n", "<C-w>", "<C-w>w", silent) -- TODO: Remap to leader + w instead of CTRL + w
 
+-- Git.
+keymap('n', '<leader>ga', silent_shell('git add .'), {})
+keymap('n', '<leader>gr', silent_shell('git reset .'), {})
+keymap('n', '<leader>gs', silent_shell('git stash'), {})
+keymap('n', '<leader>gp', silent_shell('git stash pop'), {})
+keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
+keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
+
+-- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 
--- LSP
+-- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
