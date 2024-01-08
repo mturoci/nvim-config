@@ -12,7 +12,7 @@ end
 
 -- Telescope find/grep files.
 keymap('n', '<leader>p', builtin.find_files, {})
-keymap('n', '<leader>f', builtin.live_grep, {})
+keymap('n', '<leader>ff', builtin.live_grep, {})
 keymap('n', '<leader>g', require('config.functions').my_git_status, {})
 keymap('n', '<leader>c', require('config.functions').my_git_bcommits, {})
 

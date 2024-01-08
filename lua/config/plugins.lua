@@ -149,12 +149,14 @@ return {
     end
   },
   {
-    "folke/tokyonight.nvim",
-    lazy = false,
-    priority = 1000,
+    'rose-pine/neovim',
+    name = 'rose-pine',
     config = function()
-      vim.cmd([[colorscheme tokyonight-storm]])
-    end,
+      require('rose-pine').setup({
+        variant = 'moon',
+      })
+      vim.cmd('colorscheme rose-pine-moon')
+    end
   },
   {
     "hrsh7th/nvim-cmp",
