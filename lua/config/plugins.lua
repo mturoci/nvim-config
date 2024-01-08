@@ -10,6 +10,15 @@ return {
   { 'nvim-tree/nvim-web-devicons' },
   { 'github/copilot.vim' },
   {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local harpoon = require("harpoon")
+      harpoon:setup()
+    end,
+  },
+  {
     'lewis6991/gitsigns.nvim',
     config = function()
       require('gitsigns').setup {

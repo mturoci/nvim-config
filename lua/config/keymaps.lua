@@ -69,3 +69,16 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
     if vim.bo[event.buf].filetype == 'help' then vim.cmd.only() end
   end,
 })
+
+-- Harpoon.
+local harpoon = require("harpoon")
+keymap("n", "<leader>a", function() harpoon:list():append() end)
+keymap("n", "<C-p>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+
+keymap("n", "<leader>1", function() harpoon:list():select(1) end)
+keymap("n", "<leader>2", function() harpoon:list():select(2) end)
+keymap("n", "<leader>3", function() harpoon:list():select(3) end)
+keymap("n", "<leader>4", function() harpoon:list():select(4) end)
+
+keymap("n", "<C-S-P>", function() harpoon:list():prev() end)
+keymap("n", "<C-S-N>", function() harpoon:list():next() end)
