@@ -2,7 +2,7 @@ local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 require("mason").setup()
 require("mason-lspconfig").setup({
-  ensure_installed = { "lua_lsp", "tsserver", "gopls", "pyright" },
+  ensure_installed = { "lua_ls", "tsserver", "gopls", "pyright" },
   automatic_installation = true
 })
 require("mason-lspconfig").setup_handlers {

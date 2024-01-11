@@ -1,17 +1,15 @@
-local keymap = vim.keymap.set
-local silent = { silent = true }
-local builtin = require('telescope.builtin')
+local keymap       = vim.keymap.set
+local silent       = { silent = true }
+local builtin      = require('telescope.builtin')
+local popup        = require("plenary.popup")
+
 local silent_shell = function(cmd)
   return ':!' .. cmd .. ' > /dev/null 2>&1<CR> '
-end
-local commit = function()
-  local last_commit = vim.fn.system('git log -1 --pretty=%B')
-  local message = vim.fn.input('Commit message: ', last_commit)
-  vim.cmd('!git commit -am "' .. message .. '"')
 end
 
 -- Telescope find/grep files.
 keymap('n', '<leader>p', builtin.find_files, {})
+keymap('n', '<leader>r', builtin.lsp_references, {})
 keymap('n', '<leader>ff', builtin.live_grep, {})
 keymap('n', '<leader>g', require('config.functions').my_git_status, {})
 keymap('n', '<leader>c', require('config.functions').my_git_bcommits, {})
@@ -24,6 +22,43 @@ keymap("n", "<C-l>", "<C-w>l", silent)
 keymap("n", "<C-w>", "<C-w>w", silent) -- TODO: Remap to leader + w instead of CTRL + w
 
 -- Git.
+function SubmitCommitPopup(win_id)
+  local bufnr = vim.api.nvim_win_get_buf(0)
+  local commit_msg = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  CloseCommitPopup(win_id)
+  vim.cmd(':!git commit -am "' .. commit_msg[1] .. '"')
+end
+
+function CloseCommitPopup(win_id)
+  vim.api.nvim_win_close(win_id, true)
+  vim.api.nvim_input('<Esc>')
+end
+
+local commit = function()
+  local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
+  local ui          = vim.api.nvim_list_uis()[1]
+  local height      = 1
+  local width       = ui.width / 2
+
+  local win_id      = popup.create({}, {
+    title = "Commit Message",
+    line = math.floor(((vim.o.lines - height) / 2) - 1),
+    col = math.floor((vim.o.columns - width) / 2),
+    minwidth = width,
+    minheight = height,
+    borderchars = borderchars,
+    callback = nil,
+  })
+  local bufnr       = vim.api.nvim_win_get_buf(win_id)
+  local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", "")
+  local keymap_opts = { silent = true, nowait = true, noremap = true }
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { last_commit })
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', "<cmd>lua SubmitCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'i', '<CR>', "<cmd>lua SubmitCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', "<cmd>lua CloseCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'i', 'q', "<cmd>lua CloseCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
+end
+
 keymap('n', '<leader>ga', silent_shell('git add .'), {})
 keymap('n', '<leader>gr', silent_shell('git reset .'), {})
 keymap('n', '<leader>gs', silent_shell('git stash'), {})
