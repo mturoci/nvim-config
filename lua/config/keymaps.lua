@@ -116,3 +116,33 @@ keymap("n", "<leader>4", function() harpoon:list():select(4) end)
 -- TODO: Figure out these.
 keymap("n", "<C-S-P>", function() harpoon:list():prev() end)
 keymap("n", "<C-S-N>", function() harpoon:list():next() end)
+
+-- Git signs.
+require('gitsigns').setup {
+  on_attach = function(bufnr)
+    local gs = package.loaded.gitsigns
+
+    local function map(mode, l, r, opts)
+      opts = opts or {}
+      opts.buffer = bufnr
+      vim.keymap.set(mode, l, r, opts)
+    end
+
+    -- Navigation
+    map('n', '<leader>hn', function()
+      if vim.wo.diff then return ']c' end
+      vim.schedule(function() gs.next_hunk() end)
+      return '<Ignore>'
+    end, { expr = true })
+
+    map('n', '<leader>hp', function()
+      if vim.wo.diff then return '[c' end
+      vim.schedule(function() gs.prev_hunk() end)
+      return '<Ignore>'
+    end, { expr = true })
+
+    -- Actions
+    map('n', '<leader>hr', gs.reset_hunk)
+    map('n', '<leader>hv', gs.preview_hunk)
+  end
+}
