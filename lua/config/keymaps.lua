@@ -11,7 +11,7 @@ end
 keymap('n', '<leader>p', builtin.find_files, {})
 keymap('n', '<leader>r', builtin.lsp_references, {})
 keymap('n', '<leader>ff', builtin.live_grep, {})
-keymap('n', '<leader>g', require('config.functions').my_git_status, {})
+keymap('n', '<leader>gl', require('config.functions').my_git_status, {})
 keymap('n', '<leader>c', require('config.functions').my_git_bcommits, {})
 
 -- Window management.
@@ -22,41 +22,9 @@ keymap("n", "<C-l>", "<C-w>l", silent)
 keymap("n", "<C-w>", "<C-w>w", silent) -- TODO: Remap to leader + w instead of CTRL + w
 
 -- Git.
-function SubmitCommitPopup(win_id)
-  local bufnr = vim.api.nvim_win_get_buf(0)
-  local commit_msg = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  CloseCommitPopup(win_id)
-  vim.cmd(':!git commit -am "' .. commit_msg[1] .. '"')
-end
-
-function CloseCommitPopup(win_id)
-  vim.api.nvim_win_close(win_id, true)
-  vim.api.nvim_input('<Esc>')
-end
-
 local commit = function()
-  local borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
-  local ui          = vim.api.nvim_list_uis()[1]
-  local height      = 1
-  local width       = ui.width / 2
-
-  local win_id      = popup.create({}, {
-    title = "Commit Message",
-    line = math.floor(((vim.o.lines - height) / 2) - 1),
-    col = math.floor((vim.o.columns - width) / 2),
-    minwidth = width,
-    minheight = height,
-    borderchars = borderchars,
-    callback = nil,
-  })
-  local bufnr       = vim.api.nvim_win_get_buf(win_id)
   local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", "")
-  local keymap_opts = { silent = true, nowait = true, noremap = true }
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { last_commit })
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', "<cmd>lua SubmitCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'i', '<CR>', "<cmd>lua SubmitCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'q', "<cmd>lua CloseCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'i', 'q', "<cmd>lua CloseCommitPopup(" .. win_id .. ")<CR>", keymap_opts)
+  OpenPopup('Commit Message', last_commit, 'SubmitCommitPopup')
 end
 
 keymap('n', '<leader>ga', silent_shell('git add .'), {})
@@ -88,7 +56,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
       print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
     end, opts)
     keymap('n', '<space>D', vim.lsp.buf.type_definition, opts)
-    keymap('n', '<space>rn', vim.lsp.buf.rename, opts)
+    keymap('n', '<space>rn', Rename, opts)
     keymap({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
     keymap('n', 'gr', vim.lsp.buf.references, opts)
     keymap('n', '<space>f', function()
@@ -107,8 +75,8 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
 
 -- Harpoon.
 local harpoon = require("harpoon")
-keymap("n", "<leader>a", function() harpoon:list():append() end)
-keymap("n", "<C-p>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+keymap("n", "<leader>ha", function() harpoon:list():append() end)
+keymap("n", "<leader>hl", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
 keymap("n", "<leader>1", function() harpoon:list():select(1) end)
 keymap("n", "<leader>2", function() harpoon:list():select(2) end)
 keymap("n", "<leader>3", function() harpoon:list():select(3) end)
