@@ -8,6 +8,8 @@ local COLOR_WARN = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
 local COLOR_HINT = vim.api.nvim_get_hl(0, { name = "DiagnosticHint" }).fg
 local COLOR_INFO = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg
 
+local luv = vim.loop
+local default_refresh_events = 'WinEnter,BufEnter,SessionLoadPost,FileChangedShellPost,Filetype'
 local highlights = {
   { name = "Background",      guibg = COLOR_BG, guifg = COLOR_FG },
   { name = "BackgroundLight", guibg = COLOR_FG, guifg = COLOR_PRIMARY },
@@ -21,25 +23,66 @@ for _, highlight in ipairs(highlights) do
   vim.cmd(table.concat({ "highlight Statusline", highlight.name, " guibg=", highlight.guibg, " guifg=", highlight.guifg }))
 end
 
+local git_dir = ""
+local dir = vim.fn.expand("%:p:h")
+
+while dir ~= "" and dir ~= "/" do
+  if vim.fn.isdirectory(dir .. "/.git") == 1 then
+    git_dir = dir .. "/.git"
+    break
+  end
+  dir = vim.fn.fnamemodify(dir, ":h")
+end
+
+
 local function git_info()
-  local staged = 1
-  local changed = 1
-  local branch = 'main'
-  -- TODO: Make this more performant.
-  -- local branch = vim.fn.system("git rev-parse --abbrev-ref HEAD"):gsub("\n", "")
-  -- local staged = vim.fn.system("git diff --cached --numstat | wc -l"):gsub("\n", ""):gsub(" ", "")
-  -- local changed = vim.fn.system("git diff --numstat | wc -l"):gsub("\n", ""):gsub(" ", "")
-  -- local unpushed = vim.fn.system("git log @{u}.."):gsub("\n", "")
-  -- local unpulled = vim.fn.system("git log ..@{u}"):gsub("\n", "")
-  local unpushed = -1
-  local unpulled = -1
+  if git_dir == '' then
+    return ""
+  end
+
+  local branch = ""
+  local staged = 0
+  local changed = 0
+  local untracked = 0
+  local unpushed = 0
+
+  local head_stat = luv.fs_stat(git_dir .. "/HEAD")
+  local head_data = ""
+
+  if head_stat and head_stat.mtime then
+    local head_file = luv.fs_open(git_dir .. "/HEAD", "r", 438)
+    if head_file then
+      head_data = luv.fs_read(head_file, head_stat.size, 0)
+    end
+    luv.fs_close(head_file)
+  end
+
+  branch = head_data:match("ref: refs/heads/([^\n\r%s]+)")
+  if branch then
+    branch = "  " .. branch
+  end
+
+  -- local git_status = vim.fn.system("git status -s")
+  -- for line in git_status:gmatch("[^\r\n]+") do
+  --   if string.sub(line, 1, 2) == "??" then
+  --     untracked = untracked + 1
+  --   elseif string.sub(line, 1, 1) ~= " " then
+  --     staged = staged + 1
+  --   elseif string.sub(line, 2, 2) ~= " " then
+  --     changed = changed + 1
+  --   end
+  -- end
 
   local stagedStr = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, "%#StatuslineBackgroundLight#" }) or
       ""
   local changedStr = changed > 0 and
       table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, "%#StatuslineBackgroundLight#" }) or ""
+  local untrackedStr = untracked > 0 and
+      table.concat({ "%#StatusLineError#", "  ", untracked, "%#StatuslineBackgroundLight#" }) or ""
+  local unpushedStr = unpushed > 0 and
+      table.concat({ "%#StatusLineHint#", "  ", unpushed, "%#StatuslineBackgroundLight#" }) or ""
 
-  return branch, stagedStr, changedStr, unpushed, unpulled
+  return table.concat({ branch, stagedStr, changedStr, untrackedStr, unpushedStr })
 end
 local webdevicons = require 'nvim-web-devicons'
 
@@ -76,10 +119,8 @@ local function cursor_info()
 end
 
 local function get_left()
-  local branch, staged, changed, unpushed, unpulled = git_info()
-  return table.concat({
-    "  ", branch, staged, changed, "  ", unpushed, "  ", unpulled, POWERLINE_RIGHT
-  })
+  local git = git_info()
+  return table.concat({ git, POWERLINE_RIGHT })
 end
 
 local function get_center()
