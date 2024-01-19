@@ -21,13 +21,6 @@ for _, highlight in ipairs(highlights) do
   vim.cmd(table.concat({ "highlight Statusline", highlight.name, " guibg=", highlight.guibg, " guifg=", highlight.guifg }))
 end
 
--- vim.cmd(table.concat({ "highlight Background guibg=", COLOR_BG, " guifg=", COLOR_FG }))
--- vim.cmd(table.concat({ "highlight BackgroundLight guibg=", COLOR_FG, " guifg=", COLOR_PRIMARY }))
--- vim.cmd(table.concat({ "highlight StatusLineError guibg=", COLOR_FG, " guifg=#", ("%06x"):format(COLOR_ERR) }))
--- vim.cmd(table.concat({ "highlight StatusLineWarn guibg=", COLOR_FG, " guifg=#", ("%06x"):format(COLOR_WARN) }))
--- vim.cmd(table.concat({ "highlight StatusLineHint guibg=", COLOR_FG, " guifg=#", ("%06x"):format(COLOR_HINT) }))
--- vim.cmd(table.concat({ "highlight StatusLineInfo guibg=", COLOR_FG, " guifg=#", ("%06x"):format(COLOR_INFO) }))
-
 local function git_info()
   local staged = 1
   local changed = 1
