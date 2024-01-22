@@ -1,10 +1,11 @@
 local keymap       = vim.keymap.set
 local silent       = { silent = true }
 local builtin      = require('telescope.builtin')
-local popup        = require("plenary.popup")
 
 local silent_shell = function(cmd)
-  return ':!' .. cmd .. ' > /dev/null 2>&1<CR> '
+  return function()
+    vim.cmd('silent !' .. cmd .. ' > /dev/null 2>&1')
+  end
 end
 
 -- Telescope find/grep files.
@@ -27,16 +28,17 @@ local commit = function()
   OpenPopup('Commit Message', last_commit, 'SubmitCommitPopup')
 end
 
-keymap('n', '<leader>ga', silent_shell('git add .'), {})
-keymap('n', '<leader>gr', silent_shell('git reset .'), {})
-keymap('n', '<leader>gs', silent_shell('git stash'), {})
-keymap('n', '<leader>gp', silent_shell('git stash pop'), {})
-keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
-keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
+keymap('n', '<leader>ga', Statusline_refresh_wrap(silent_shell('git add .')), {})
+keymap('n', '<leader>gr', Statusline_refresh_wrap(silent_shell('git reset .')), {})
+keymap('n', '<leader>gs', Statusline_refresh_wrap(silent_shell('git stash')), {})
+keymap('n', '<leader>gp', Statusline_refresh_wrap(silent_shell('git stash pop')), {})
+keymap('n', '<leader>grh', Statusline_refresh_wrap(silent_shell('git reset --hard')), {})
+keymap('n', '<leader>grs', Statusline_refresh_wrap(silent_shell('git reset --soft HEAD~1')), {})
 keymap('n', '<leader>gc', commit, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
+keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
 
 -- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -59,6 +61,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', '<space>rn', Rename, opts)
     keymap({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
     keymap('n', 'gr', vim.lsp.buf.references, opts)
+    keymap('n', 'o', builtin.lsp_document_symbols, opts)
     keymap('n', '<space>f', function()
       vim.lsp.buf.format { async = true }
     end, opts)

@@ -18,12 +18,14 @@ local delta          = previewers.new_termopen_previewer {
   end
 }
 
-function SubmitCommitPopup(win_id)
+function submitCommitPopup(win_id)
   local bufnr = vim.api.nvim_win_get_buf(0)
   local commit_msg = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   ClosePopup(win_id)
   vim.cmd(':!git commit -am "' .. commit_msg[1] .. '"')
 end
+
+SubmitCommitPopup = Statusline_refresh_wrap(submitCommitPopup)
 
 function SubmitRenamePopup(win_id)
   local bufnr = vim.api.nvim_win_get_buf(0)

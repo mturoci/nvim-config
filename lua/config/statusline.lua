@@ -7,10 +7,7 @@ local COLOR_ERR = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
 local COLOR_WARN = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
 local COLOR_HINT = vim.api.nvim_get_hl(0, { name = "DiagnosticHint" }).fg
 local COLOR_INFO = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg
-
-local luv = vim.loop
-local default_refresh_events = 'WinEnter,BufEnter,SessionLoadPost,FileChangedShellPost,Filetype'
-local highlights = {
+local HIGHLIGHTS = {
   { name = "Background",      guibg = COLOR_BG, guifg = COLOR_FG },
   { name = "BackgroundLight", guibg = COLOR_FG, guifg = COLOR_PRIMARY },
   { name = "Error",           guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_ERR) },
@@ -18,22 +15,25 @@ local highlights = {
   { name = "Hint",            guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_HINT) },
   { name = "Info",            guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_INFO) }
 }
+local webdevicons = require 'nvim-web-devicons'
+local luv = vim.loop
+local path = require('plenary.path')
+local utils = require('config.utils')
 
-for _, highlight in ipairs(highlights) do
+for _, highlight in ipairs(HIGHLIGHTS) do
   vim.cmd(table.concat({ "highlight Statusline", highlight.name, " guibg=", highlight.guibg, " guifg=", highlight.guifg }))
 end
 
+local dir = path:new(vim.loop.cwd())
 local git_dir = ""
-local dir = vim.fn.expand("%:p:h")
-
-while dir ~= "" and dir ~= "/" do
-  if vim.fn.isdirectory(dir .. "/.git") == 1 then
-    git_dir = dir .. "/.git"
+while dir.filename ~= "" and dir.filename ~= "/" do
+  local git_path = dir:joinpath(".git")
+  if git_path:exists() then
+    git_dir = git_path.filename
     break
   end
-  dir = vim.fn.fnamemodify(dir, ":h")
+  dir = path:new(dir:parent())
 end
-
 
 local function git_info()
   if git_dir == '' then
@@ -48,7 +48,6 @@ local function git_info()
 
   local head_stat = luv.fs_stat(git_dir .. "/HEAD")
   local head_data = ""
-
   if head_stat and head_stat.mtime then
     local head_file = luv.fs_open(git_dir .. "/HEAD", "r", 438)
     if head_file then
@@ -62,16 +61,13 @@ local function git_info()
     branch = "  " .. branch
   end
 
-  -- local git_status = vim.fn.system("git status -s")
-  -- for line in git_status:gmatch("[^\r\n]+") do
-  --   if string.sub(line, 1, 2) == "??" then
-  --     untracked = untracked + 1
-  --   elseif string.sub(line, 1, 1) ~= " " then
-  --     staged = staged + 1
-  --   elseif string.sub(line, 2, 2) ~= " " then
-  --     changed = changed + 1
-  --   end
-  -- end
+  -- TODO: Make a background task.
+  local git_status = vim.fn.system("git status -s")
+  for line in git_status:gmatch("[^\r\n]+") do
+    if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
+    if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
+    if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
+  end
 
   local stagedStr = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, "%#StatuslineBackgroundLight#" }) or
       ""
@@ -84,7 +80,6 @@ local function git_info()
 
   return table.concat({ branch, stagedStr, changedStr, untrackedStr, unpushedStr })
 end
-local webdevicons = require 'nvim-web-devicons'
 
 local function file_info()
   local filename = vim.fn.expand("%:t")
@@ -142,54 +137,36 @@ end
 local function get_right()
   local percent = cursor_info()
   -- TODO: Calculate the precise length of space buffer to get the center section into the screen center, not just the middle of the statusline.
-  return table.concat({
-    POWERLINE_LEFT, percent, " 󱉸 "
-  })
+  return table.concat({ POWERLINE_LEFT, percent, " 󱉸 " })
 end
 
--- local function setTimeout(timeout, callback)
---   local timer = vim.uv.new_timer()
---   timer:start(timeout, 0, function()
---     timer:stop()
---     timer:close()
---     callback()
---   end)
---   return timer
--- end
---
--- local function clearTimeout(timer)
---   timer:stop()
---   timer:close()
--- end
---
--- local function debounce(callback, timeout)
---   local timer = nil
---   return function()
---     if timer ~= nil then
---       clearTimeout(timer)
---     end
---     timer = setTimeout(timeout, callback)
---   end
--- end
-
--- local prevStatusline = ''
-local function get_statusline()
+local function refresh_statusline()
   local left = get_left()
   local center = get_center()
   local right = get_right()
 
-  local statusline = table.concat({
+  vim.o.statusline = table.concat({
     "%#StatuslineBackgroundLight#", left, "%#StatuslineBackground#", "%=",
     "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
     "                  %#StatuslineBackgroundLight#", right
   })
-  -- prevStatusline = statusline
-  -- vim.o.statusline = statusline
-  -- return prevStatusline
-  return statusline
 end
 
--- _G.statusline = debounce(get_statusline, 1000)
-_G.statusline = get_statusline
+local status_group = vim.api.nvim_create_augroup('statusline', { clear = true })
+vim.api.nvim_create_autocmd(
+  { 'WinEnter', 'BufEnter', 'BufWritePost', 'SessionLoadPost', 'Filetype', 'FileChangedShellPost' }, {
+    group = status_group,
+    callback = refresh_statusline,
+  })
+vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
+  group = status_group,
+  callback = utils.debounce(700, refresh_statusline)
+})
 
-vim.o.statusline = "%!v:lua.statusline()"
+
+function Statusline_refresh_wrap(callback)
+  return function(args)
+    callback(args)
+    refresh_statusline()
+  end
+end
