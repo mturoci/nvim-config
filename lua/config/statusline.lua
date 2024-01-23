@@ -89,8 +89,7 @@ local function git_info()
     args = { 'status', '-s' },
     on_exit = vim.schedule_wrap(function(j)
       local result = j:result()
-      if result == nil then return end
-      print(result[1])
+      if result[1] == nil then return end
 
       for line in result[1]:gmatch("[^\r\n]+") do
         if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
