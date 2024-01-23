@@ -22,8 +22,25 @@ local luv = vim.loop
 local path = require('plenary.path')
 local utils = require('config.utils')
 local Job = require('plenary.job')
+local prev_left = ''
+local prev_center = ''
+local prev_right = ''
+local original_tmux_left = '#(/Users/mturoci/.tmux/right_status.sh)'
+local tmux_right_length = 28
 local function get_tmux_color(fg, bg)
   return table.concat({ "#[fg=", fg, ",bg=", bg, "]" })
+end
+
+local function set_statusline(left, center, right)
+  if left == nil then left = prev_left else prev_left = left end
+  if center == nil then center = prev_center else prev_center = center end
+  if right == nil then right = prev_right else prev_right = right end
+
+  local spaces = vim.fn.winwidth(0) - #center - tmux_right_length
+  center = table.concat({ center, string.rep(" ", spaces), original_tmux_left })
+  Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
+  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, "%=", "%#StatuslineBackground#",
+    "%#StatuslineBackgroundLight#", right })
 end
 
 for _, highlight in ipairs(HIGHLIGHTS) do
@@ -67,24 +84,32 @@ local function git_info()
     branch = "  " .. branch
   end
 
-  -- TODO: Make a background task.
-  local git_status = vim.fn.system("git status -s")
-  for line in git_status:gmatch("[^\r\n]+") do
-    if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
-    if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
-    if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
-  end
+  Job:new({
+    command = 'git',
+    args = { 'status', '-s' },
+    on_exit = vim.schedule_wrap(function(j)
+      for line in j:result()[1]:gmatch("[^\r\n]+") do
+        if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
+        if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
+        if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
+      end
 
-  local stagedStr = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, "%#StatuslineBackgroundLight#" }) or
-      ""
-  local changedStr = changed > 0 and
-      table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, "%#StatuslineBackgroundLight#" }) or ""
-  local untrackedStr = untracked > 0 and
-      table.concat({ "%#StatusLineError#", "  ", untracked, "%#StatuslineBackgroundLight#" }) or ""
-  local unpushedStr = unpushed > 0 and
-      table.concat({ "%#StatusLineHint#", "  ", unpushed, "%#StatuslineBackgroundLight#" }) or ""
+      local stagedStr = staged > 0 and
+          table.concat({ "%#StatusLineInfo#", "  ", staged, "%#StatuslineBackgroundLight#" }) or
+          ""
+      local changedStr = changed > 0 and
+          table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, "%#StatuslineBackgroundLight#" }) or ""
+      local untrackedStr = untracked > 0 and
+          table.concat({ "%#StatusLineError#", "  ", untracked, "%#StatuslineBackgroundLight#" }) or ""
+      local unpushedStr = unpushed > 0 and
+          table.concat({ "%#StatusLineHint#", "  ", unpushed, "%#StatuslineBackgroundLight#" }) or ""
 
-  return table.concat({ branch, stagedStr, changedStr, untrackedStr, unpushedStr })
+      local git_str = table.concat({ branch, stagedStr, changedStr, untrackedStr, unpushedStr })
+      set_statusline(git_str, nil, nil)
+    end),
+  }):start()
+
+  return nil
 end
 
 local function file_info()
@@ -116,14 +141,12 @@ local function lsp_info()
   return errorsStr, warningsStr, hintsStr, infoStr
 end
 
-local function cursor_info()
-  local percent = vim.fn.line(".") / vim.fn.line("$") * 100
-  return math.floor(percent + 0.5)
-end
-
 local function get_left()
-  local git = git_info()
-  return table.concat({ git, POWERLINE_RIGHT })
+  local git_str = git_info()
+  if git_str == nil then
+    return nil
+  end
+  return table.concat({ git_str, POWERLINE_RIGHT })
 end
 
 local function get_center()
@@ -141,27 +164,12 @@ local function get_center()
 end
 
 local function get_right()
-  local percent = cursor_info()
-  return table.concat({ POWERLINE_LEFT, percent, " 󱉸 " })
+  local percent = vim.fn.line(".") / vim.fn.line("$") * 100
+  return table.concat({ POWERLINE_LEFT, math.floor(percent + 0.5), " 󱉸 " })
 end
 
-local prev_left = ''
-local original_tmux_left = '#(/Users/mturoci/.tmux/right_status.sh)'
-local tmux_right_length = 28
-local function set_statusline(left, center, right)
-  local spaces = vim.fn.winwidth(0) - #center - tmux_right_length
-  center = table.concat({ center, string.rep(" ", spaces), original_tmux_left })
-  Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
-  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, "%=", "%#StatuslineBackground#",
-    "%#StatuslineBackgroundLight#", right })
-end
 local function refresh_statusline()
-  local left = get_left()
-  local center = get_center()
-  local right = get_right()
-
-  prev_left = left
-  set_statusline(left, center, right)
+  set_statusline(get_left(), get_center(), get_right())
 end
 
 local status_group = vim.api.nvim_create_augroup('statusline', { clear = true })
@@ -176,7 +184,7 @@ vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
 })
 vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
   group = status_group,
-  callback = function() set_statusline(prev_left, get_center(), get_right()) end
+  callback = function() set_statusline(nil, get_center(), get_right()) end
 })
 
 function Statusline_refresh_wrap(callback)
