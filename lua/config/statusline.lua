@@ -136,15 +136,16 @@ end
 
 local function get_right()
   local percent = cursor_info()
-  -- TODO: Calculate the precise length of space buffer to get the center section into the screen center, not just the middle of the statusline.
   return table.concat({ POWERLINE_LEFT, percent, " 󱉸 " })
 end
 
+local prev_left = ''
 local function refresh_statusline()
   local left = get_left()
   local center = get_center()
   local right = get_right()
 
+  prev_left = left
   vim.o.statusline = table.concat({
     "%#StatuslineBackgroundLight#", left, "%#StatuslineBackground#", "%=",
     "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
@@ -161,6 +162,19 @@ vim.api.nvim_create_autocmd(
 vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
   group = status_group,
   callback = utils.debounce(700, refresh_statusline)
+})
+vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
+  group = status_group,
+  callback = function()
+    local right = get_right()
+    local center = get_center()
+
+    vim.o.statusline = table.concat({
+      "%#StatuslineBackgroundLight#", prev_left, "%#StatuslineBackground#", "%=",
+      "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
+      "                  %#StatuslineBackgroundLight#", right
+    })
+  end
 })
 
 
