@@ -140,17 +140,20 @@ local function get_right()
 end
 
 local prev_left = ''
+local function set_statusline(left, center, right)
+  vim.o.statusline = table.concat({
+    "%#StatuslineBackgroundLight#", left, "%#StatuslineBackground#", "%=",
+    "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
+    "%#StatuslineBackgroundLight#", right
+  })
+end
 local function refresh_statusline()
   local left = get_left()
   local center = get_center()
   local right = get_right()
 
   prev_left = left
-  vim.o.statusline = table.concat({
-    "%#StatuslineBackgroundLight#", left, "%#StatuslineBackground#", "%=",
-    "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
-    "                  %#StatuslineBackgroundLight#", right
-  })
+  set_statusline(left, center, right)
 end
 
 local status_group = vim.api.nvim_create_augroup('statusline', { clear = true })
@@ -165,18 +168,8 @@ vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
 })
 vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
   group = status_group,
-  callback = function()
-    local right = get_right()
-    local center = get_center()
-
-    vim.o.statusline = table.concat({
-      "%#StatuslineBackgroundLight#", prev_left, "%#StatuslineBackground#", "%=",
-      "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
-      "                  %#StatuslineBackgroundLight#", right
-    })
-  end
+  callback = function() set_statusline(prev_left, get_center(), get_right()) end
 })
-
 
 function Statusline_refresh_wrap(callback)
   return function(args)
