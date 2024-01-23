@@ -1,7 +1,9 @@
 local POWERLINE_RIGHT = " %#StatuslineBackground#"
 local POWERLINE_LEFT = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
+local TMUX_POWERLINE_LEFT = '#[fg=#3a3a3a]#[fg=#a7c080,bg=#3a3a3a]'
+local TMUX_POWERLINE_RIGHT = '#[bg=#262626,fg=#3a3a3a]#[bg=#262626]'
 local COLOR_BG = "#262626"
-local COLOR_FG = "#444444"
+local COLOR_FG = "#3a3a3a"
 local COLOR_PRIMARY = "#a7c080"
 local COLOR_ERR = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
 local COLOR_WARN = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
@@ -19,6 +21,10 @@ local webdevicons = require 'nvim-web-devicons'
 local luv = vim.loop
 local path = require('plenary.path')
 local utils = require('config.utils')
+local Job = require('plenary.job')
+local function get_tmux_color(fg, bg)
+  return table.concat({ "#[fg=", fg, ",bg=", bg, "]" })
+end
 
 for _, highlight in ipairs(HIGHLIGHTS) do
   vim.cmd(table.concat({ "highlight Statusline", highlight.name, " guibg=", highlight.guibg, " guifg=", highlight.guifg }))
@@ -96,14 +102,16 @@ local function lsp_info()
   local hints = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.HINT })
   local info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
 
-  local errorsStr = errors > 0 and table.concat({ "%#StatusLineError#", "  ", errors, "%#StatuslineBackgroundLight#" }) or
-      ""
-  local warningsStr = warnings > 0 and
-      table.concat({ "%#StatusLineWarn#", "  ", warnings, "%#StatuslineBackgroundLight# " }) or
-      ""
-  local hintsStr = hints > 0 and table.concat({ "%#StatusLineHint#", "  ", hints, "%#StatuslineBackgroundLight# " }) or
-      ""
-  local infoStr = info > 0 and table.concat({ "%#StatusLineInfo#", "  ", info, "%#StatuslineBackgroundLight#" }) or ""
+  local tmux_bg_light = get_tmux_color(COLOR_PRIMARY, COLOR_FG)
+  local tmux_err = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
+  local tmux_warn = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
+  local tmux_hint = get_tmux_color("#" .. ("%06x"):format(COLOR_HINT), COLOR_FG)
+  local tmux_info = get_tmux_color("#" .. ("%06x"):format(COLOR_INFO), COLOR_FG)
+
+  local errorsStr = errors > 0 and table.concat({ tmux_err, "  ", errors, tmux_bg_light }) or ""
+  local warningsStr = warnings > 0 and table.concat({ tmux_warn, "  ", warnings, tmux_bg_light }) or ""
+  local hintsStr = hints > 0 and table.concat({ tmux_hint, "  ", hints, tmux_bg_light }) or ""
+  local infoStr = info > 0 and table.concat({ tmux_info, "  ", info, tmux_bg_light }) or ""
 
   return errorsStr, warningsStr, hintsStr, infoStr
 end
@@ -122,15 +130,13 @@ local function get_center()
   local filename, dirty, icon, color = file_info()
   local errors, warnings, hints, info = lsp_info()
 
-  if icon then
-    vim.cmd(table.concat({ "highlight StatuslineBackgroundIcon guibg=", COLOR_FG, " guifg=", color }))
-  end
-
   return table.concat({
-    POWERLINE_LEFT, "%#StatuslineBackgroundIcon#", icon or "", "%#StatuslineBackgroundLight# ", filename, dirty == 1 and
-  "*" or " ",
-    errors, warnings, hints, info,
-    POWERLINE_RIGHT
+    TMUX_POWERLINE_LEFT,
+    " ", get_tmux_color(color, COLOR_FG), icon or "", get_tmux_color(COLOR_PRIMARY, COLOR_FG), " ", filename,
+    dirty == 1 and
+    "*" or " ",
+    errors, warnings, hints, info, " ",
+    TMUX_POWERLINE_RIGHT
   })
 end
 
@@ -140,12 +146,14 @@ local function get_right()
 end
 
 local prev_left = ''
+local original_tmux_left = '#(/Users/mturoci/.tmux/right_status.sh)'
+local tmux_right_length = 28
 local function set_statusline(left, center, right)
-  vim.o.statusline = table.concat({
-    "%#StatuslineBackgroundLight#", left, "%#StatuslineBackground#", "%=",
-    "%#StatuslineBackgroundLight#", center, "%#StatuslineBackground#", "%=",
-    "%#StatuslineBackgroundLight#", right
-  })
+  local spaces = vim.fn.winwidth(0) - #center - tmux_right_length
+  center = table.concat({ center, string.rep(" ", spaces), original_tmux_left })
+  Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
+  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, "%=", "%#StatuslineBackground#",
+    "%#StatuslineBackgroundLight#", right })
 end
 local function refresh_statusline()
   local left = get_left()
