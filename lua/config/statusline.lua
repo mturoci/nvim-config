@@ -90,7 +90,7 @@ local function git_info()
     on_exit = vim.schedule_wrap(function(j)
       local result = j:result()
       if result == nil then return end
-
+      print(result)
       for line in result[1]:gmatch("[^\r\n]+") do
         if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
         if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
