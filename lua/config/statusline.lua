@@ -39,8 +39,8 @@ local function set_statusline(left, center, right)
   local spaces = vim.fn.winwidth(0) - #center - tmux_right_length
   center = table.concat({ center, string.rep(" ", spaces), original_tmux_left })
   Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
-  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, "%=", "%#StatuslineBackground#",
-    "%#StatuslineBackgroundLight#", right })
+  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, POWERLINE_RIGHT, "%=",
+    "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
 end
 
 for _, highlight in ipairs(HIGHLIGHTS) do
