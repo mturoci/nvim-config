@@ -97,15 +97,11 @@ local function git_info()
         if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
       end
 
-      local stagedStr = staged > 0 and
-          table.concat({ "%#StatusLineInfo#", "  ", staged, "%#StatuslineBackgroundLight#" }) or
-          ""
-      local changedStr = changed > 0 and
-          table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, "%#StatuslineBackgroundLight#" }) or ""
-      local untrackedStr = untracked > 0 and
-          table.concat({ "%#StatusLineError#", "  ", untracked, "%#StatuslineBackgroundLight#" }) or ""
-      local unpushedStr = unpushed > 0 and
-          table.concat({ "%#StatusLineHint#", "  ", unpushed, "%#StatuslineBackgroundLight#" }) or ""
+      local bgLight = "%#StatuslineBackgroundLight#"
+      local stagedStr = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, bgLight }) or ""
+      local changedStr = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bgLight }) or ""
+      local untrackedStr = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bgLight }) or ""
+      local unpushedStr = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bgLight }) or ""
 
       local git_str = table.concat({ branch, stagedStr, changedStr, untrackedStr, unpushedStr })
       set_statusline(git_str, nil, nil)
