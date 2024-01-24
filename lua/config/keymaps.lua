@@ -61,7 +61,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', '<space>rn', Rename, opts)
     keymap({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
     keymap('n', 'gr', vim.lsp.buf.references, opts)
-    keymap('n', 'lo', builtin.lsp_document_symbols, opts)
+    keymap('n', 'so', builtin.lsp_document_symbols, opts)
     keymap('n', '<space>f', function()
       vim.lsp.buf.format { async = true }
     end, opts)
