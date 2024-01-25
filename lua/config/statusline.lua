@@ -73,10 +73,6 @@ local function git_info()
   end
 
   local branch = ""
-  local staged = 0
-  local changed = 0
-  local untracked = 0
-  local unpushed = 0
 
   local head_stat = luv.fs_stat(git_dir .. "/HEAD")
   local head_data = ""
@@ -99,6 +95,11 @@ local function git_info()
     on_exit = vim.schedule_wrap(function(j)
       local result = j:result()
       if result[1] == nil then return end
+
+      local staged = 0
+      local changed = 0
+      local untracked = 0
+      local unpushed = 0
 
       for line in result[1]:gmatch("[^\r\n]+") do
         if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
