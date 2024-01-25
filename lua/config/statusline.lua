@@ -42,8 +42,8 @@ local function set_statusline(left, center, right, center_len)
   if center == nil then center = prev_center else prev_center = center end
   if right == nil then right = prev_right else prev_right = right end
 
-  vim.o.statusline = table.concat({ "%#StatuslineBackgroundLight#", left, POWERLINE_RIGHT, "%=",
-    "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
+  local left_part = left ~= '' and table.concat({ "%#StatuslineBackgroundLight#", left, POWERLINE_RIGHT }) or ""
+  vim.o.statusline = table.concat({ left_part, "%=", "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
 
   if center_len == nil then return end
 
