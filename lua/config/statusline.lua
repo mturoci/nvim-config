@@ -22,7 +22,7 @@ local POWERLINE_LEFT = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
 local TMUX_POWERLINE_LEFT = '#[fg=#3a3a3a]#[fg=#a7c080,bg=#3a3a3a]'
 local TMUX_POWERLINE_RIGHT = '#[bg=#262626,fg=#3a3a3a]#[bg=#262626]'
 local TMUX_RIGHT_LENGTH = 28
-local TMUX_ORIGINAL_LEFT = '#(/Users/mturoci/.tmux/right_status.sh)'
+local TMUX_ORIGINAL_RIGHT = '#(/Users/mturoci/.tmux/right_status.sh)'
 local TMUX_ERR = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
 local TMUX_WARN = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
 local TMUX_HINT = get_tmux_color("#" .. ("%06x"):format(COLOR_HINT), COLOR_FG)
@@ -48,7 +48,7 @@ local function set_statusline(left, center, right, center_len)
   if center_len == nil then return end
 
   local spaces = ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH
-  center = table.concat({ center, string.rep(" ", spaces), TMUX_ORIGINAL_LEFT })
+  center = table.concat({ center, string.rep(" ", spaces), TMUX_ORIGINAL_RIGHT })
   Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
 end
 
@@ -216,7 +216,7 @@ end
 
 local status_group = vim.api.nvim_create_augroup('statusline', { clear = true })
 vim.api.nvim_create_autocmd(
-  { 'WinEnter', 'BufEnter', 'BufWritePost', 'SessionLoadPost', 'Filetype', 'FileChangedShellPost' }, {
+  { 'WinEnter', 'BufEnter', 'BufWritePost', 'SessionLoadPost', 'FileChangedShellPost' }, {
     group = status_group,
     callback = refresh_statusline,
   })
@@ -229,6 +229,14 @@ vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
   callback = function()
     local center, center_len = get_center()
     set_statusline(nil, center, get_right(), center_len)
+  end
+})
+vim.api.nvim_create_autocmd({ 'VimLeave' }, {
+  group = status_group,
+  pattern = '*',
+  callback = function()
+    Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", TMUX_ORIGINAL_RIGHT }, detached = true })
+        :start()
   end
 })
 
