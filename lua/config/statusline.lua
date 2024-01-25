@@ -21,7 +21,7 @@ local POWERLINE_RIGHT = " %#StatuslineBackground#"
 local POWERLINE_LEFT = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
 local TMUX_POWERLINE_LEFT = '#[fg=#3a3a3a]#[fg=#a7c080,bg=#3a3a3a]'
 local TMUX_POWERLINE_RIGHT = '#[bg=#262626,fg=#3a3a3a]#[bg=#262626]'
-local TMUX_RIGHT_LENGTH = 28
+local TMUX_RIGHT_LENGTH = 20
 local TMUX_ORIGINAL_RIGHT = '#(/Users/mturoci/.tmux/right_status.sh)'
 local TMUX_ERR = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
 local TMUX_WARN = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
