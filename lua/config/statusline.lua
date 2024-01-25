@@ -181,7 +181,7 @@ end
 
 local function get_left()
   local git_str = git_info()
-  if git_str == nil then
+  if git_str == nil or git_str == "" then
     return nil
   end
   return table.concat({ git_str, POWERLINE_RIGHT })
