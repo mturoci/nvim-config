@@ -23,6 +23,7 @@ local function submitCommitPopup(win_id)
   local commit_msg = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   ClosePopup(win_id)
   vim.cmd(':!git commit -am "' .. commit_msg[1] .. '"')
+  print('Commit submitted')
 end
 
 SubmitCommitPopup = Statusline_refresh_wrap(submitCommitPopup)

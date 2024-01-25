@@ -94,15 +94,15 @@ local function git_info()
     args = { 'status', '-s' },
     on_exit = vim.schedule_wrap(function(j)
       local result = j:result()
-      if result[1] == nil then return end
+      if next(result) == nil then return end
 
-      print(result[1])
       local staged = 0
       local changed = 0
       local untracked = 0
       local unpushed = 0
 
-      for line in result[1]:gmatch("[^\r\n]+") do
+      print(vim.inspect(result))
+      for _, line in pairs(result) do
         if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
         if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
         if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
@@ -244,7 +244,11 @@ vim.api.nvim_create_autocmd({ 'VimLeave' }, {
 
 function Statusline_refresh_wrap(callback)
   return function(args)
+    print('calling callback')
     callback(args)
+    print('finished callback')
+    print('calling statusline')
     refresh_statusline()
+    print('finished statusline')
   end
 end
