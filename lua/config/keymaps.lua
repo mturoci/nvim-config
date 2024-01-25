@@ -34,7 +34,7 @@ keymap('n', '<leader>gs', Statusline_refresh_wrap(silent_shell('git stash')), {}
 keymap('n', '<leader>gp', Statusline_refresh_wrap(silent_shell('git stash pop')), {})
 keymap('n', '<leader>grh', Statusline_refresh_wrap(silent_shell('git reset --hard')), {})
 keymap('n', '<leader>grs', Statusline_refresh_wrap(silent_shell('git reset --soft HEAD~1')), {})
-keymap('n', '<leader>gc', Statusline_refresh_wrap(commit), {})
+keymap('n', '<leader>gc', commit, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights

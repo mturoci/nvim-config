@@ -96,6 +96,7 @@ local function git_info()
       local result = j:result()
       if result[1] == nil then return end
 
+      print(result[1])
       local staged = 0
       local changed = 0
       local untracked = 0
