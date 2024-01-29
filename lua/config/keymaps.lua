@@ -42,7 +42,6 @@ keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
 
 -- LSP.
-
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
@@ -58,6 +57,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
     keymap('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
     keymap('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
+    keymap('n', '<C-[>', vim.diagnostic.goto_prev, opts)
+    keymap('n', '<C-]>', vim.diagnostic.goto_next, opts)
     keymap('n', '<space>wl', function()
       print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
     end, opts)
