@@ -1,6 +1,7 @@
 local keymap       = vim.keymap.set
 local silent       = { silent = true }
 local builtin      = require('telescope.builtin')
+local functions    = require('config.functions')
 
 local silent_shell = function(cmd)
   return function()
@@ -10,10 +11,10 @@ end
 
 -- Telescope find/grep files.
 keymap('n', '<leader>p', builtin.find_files, {})
-keymap('n', '<leader>r', builtin.lsp_references, {})
 keymap('n', '<leader>ff', builtin.live_grep, {})
-keymap('n', '<leader>gl', require('config.functions').my_git_status, {})
-keymap('n', '<leader>c', require('config.functions').my_git_bcommits, {})
+keymap('n', '<leader>fh', builtin.help_tags, {})
+keymap('n', '<leader>gl', functions.my_git_status, {})
+keymap('n', '<leader>c', functions.my_git_bcommits, {})
 
 -- Window management.
 keymap("n", "<C-h>", "<C-w>h", silent)
@@ -41,6 +42,7 @@ keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
 
 -- LSP.
+
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('UserLspConfig', {}),
   callback = function(ev)
@@ -51,6 +53,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', 'gd', vim.lsp.buf.definition, opts)
     keymap('n', 'K', vim.lsp.buf.hover, opts)
     keymap('n', 'gi', vim.lsp.buf.implementation, opts)
+    keymap('n', 'gr', functions.go_to_references, opts)
+    keymap('n', 'ge', functions.go_to_references, opts)
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
     keymap('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
     keymap('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
@@ -60,7 +64,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', '<space>D', vim.lsp.buf.type_definition, opts)
     keymap('n', '<space>rn', Rename, opts)
     keymap({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-    keymap('n', 'gr', vim.lsp.buf.references, opts)
     keymap('n', 'so', builtin.lsp_document_symbols, opts)
     keymap('n', '<space>f', function()
       vim.lsp.buf.format { async = true }

@@ -113,7 +113,7 @@ return {
     lazy = false,
     config = function()
       local actions = require('telescope.actions')
-      local function filenameFirst(_, path)
+      local function filename_first(_, path)
         local tail = vim.fs.basename(path)
         local parent = vim.fs.dirname(path)
         if parent == "." then return tail end
@@ -125,7 +125,7 @@ return {
         callback = function(ctx)
           vim.api.nvim_buf_call(ctx.buf, function()
             vim.fn.matchadd("TelescopeParent", "\t\t.*$")
-            vim.api.nvim_set_hl(0, "TelescopeParent", { link = "Comment" })
+            vim.api.nvim_set_hl(0, "TelescopeParent", { link = "TelescopeResultsComment" })
           end)
         end,
       })
@@ -133,9 +133,7 @@ return {
       require("telescope").setup({
         pickers = {
           live_grep = {
-            additional_args = function()
-              return { "--max-count=1" }
-            end
+            additional_args = function() return { "--max-count=1" } end
           },
         },
         defaults = {
@@ -147,7 +145,7 @@ return {
           layout_config = { prompt_position = "top" },
           prompt_prefix = " ",
           -- TODO: Doesn't work for git_status. Needs to be fixed in telescope itself.
-          path_display = filenameFirst,
+          path_display = filename_first,
         }
       })
     end

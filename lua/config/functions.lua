@@ -1,9 +1,14 @@
-local previewers     = require('telescope.previewers')
-local builtin        = require('telescope.builtin')
 local M              = {}
 local api            = vim.api
 local popup          = require('plenary.popup')
 local illuminate     = require('illuminate')
+local previewers     = require('telescope.previewers')
+local pickers        = require "telescope.pickers"
+local builtin        = require 'telescope.builtin'
+local finders        = require "telescope.finders"
+local conf           = require("telescope.config").values
+local utils          = require "telescope.utils"
+local entry_display  = require "telescope.pickers.entry_display"
 
 local delta_bcommits = previewers.new_termopen_previewer {
   get_command = function(entry)
@@ -22,8 +27,7 @@ local function submitCommitPopup(win_id)
   local bufnr = vim.api.nvim_win_get_buf(0)
   local commit_msg = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   ClosePopup(win_id)
-  vim.cmd(':!git commit -am "' .. commit_msg[1] .. '"')
-  print('Commit submitted')
+  vim.cmd('silent !git commit -am "' .. commit_msg[1] .. '" > /dev/null 2>&1')
 end
 
 SubmitCommitPopup = Statusline_refresh_wrap(submitCommitPopup)
@@ -132,6 +136,82 @@ function Rename()
 
   local var_name = prefix .. suffix
   OpenPopup('Refactor', var_name, 'SubmitRenamePopup')
+end
+
+function M.go_to_references()
+  local params = vim.lsp.util.make_position_params()
+  params.context = { includeDeclaration = false }
+
+  vim.lsp.buf_request_all(0, 'textDocument/references', params, function(result)
+    result = result[2].result
+    if not result then return end
+    local total = #result
+
+    if total == 1 then
+      local ref = result[1]
+      local start = ref.range.start
+      vim.api.nvim_command('edit ' .. ref.uri)
+      vim.api.nvim_win_set_cursor(0, { start.line + 1, start.character })
+      return
+    end
+
+    local files = {}
+    local items = {}
+    for _, ref in ipairs(result) do
+      local item = {}
+      local filename = vim.uri_to_fname(ref.uri)
+      if not files[filename] then files[filename] = 1 end
+
+      item.basename = vim.fs.basename(filename)
+      item.filename = filename
+      item.lnum = ref.range.start.line
+      item.col = ref.range.start.character
+      table.insert(items, item)
+    end
+
+    local total_files = vim.tbl_count(files)
+    local results_title = total .. ' references in ' .. total_files .. ' file'
+    if total_files > 1 then results_title = results_title .. 's' end
+
+    local displayer = entry_display.create {
+      separator = "",
+      items = {
+        { width = 1 },
+        { remaining = true },
+        { width = 10 },
+        { width = 100 },
+      },
+    }
+
+    local function make_display(entry)
+      local icon, hl_group = utils.get_devicons(entry.filename, false)
+      local parent = vim.fs.dirname(entry.filename)
+      return displayer {
+        { icon,                        hl_group },
+        { ' ' .. entry.value.basename, "TelescopeResultsIdentifier" },
+        { ':' .. entry.lnum,           "TelescopeResultsComment" },
+        { parent,                      "TelescopeResultsComment" },
+      }
+    end
+
+    pickers.new({}, {
+      results_title = results_title,
+      finder = finders.new_table({
+        results = items,
+        entry_maker = function(entry)
+          return {
+            value = entry,
+            display = make_display,
+            ordinal = entry.filename,
+            filename = entry.filename,
+            lnum = entry.lnum + 1,
+          }
+        end
+      }),
+      sorter = conf.generic_sorter({}),
+      previewer = previewers.vim_buffer_vimgrep.new({}),
+    }):find()
+  end)
 end
 
 return M
