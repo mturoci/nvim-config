@@ -11,7 +11,6 @@ local utils          = require "telescope.utils"
 local actions        = require "telescope.actions"
 local action_state   = require "telescope.actions.state"
 local entry_display  = require "telescope.pickers.entry_display"
-local Job            = require('plenary.job')
 local statusline     = require('config.statusline')
 
 local delta_bcommits = previewers.new_termopen_previewer {
@@ -262,15 +261,23 @@ function M.commit()
       actions.select_default:replace(function()
         local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
         actions.close(prompt_bufnr)
+        local uv = vim.loop
+        local stdout = uv.new_pipe()
 
-        Job:new({
-          command = 'git',
-          args = { 'commit', '-m', prompt },
-          on_exit = vim.schedule_wrap(function()
-            statusline.set_staged(0)
-            statusline.refresh()
-          end),
-        }):start()
+        uv.spawn("git", { args = { "commit", "-m", prompt }, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
+          statusline.refresh()
+        end))
+
+        uv.read_start(stdout, function(err, data)
+          if err then
+            print("ERROR: ", err)
+            return
+          end
+
+          if data then
+            print(data)
+          end
+        end)
       end)
       return true
     end,
