@@ -8,7 +8,11 @@ local builtin        = require 'telescope.builtin'
 local finders        = require "telescope.finders"
 local conf           = require("telescope.config").values
 local utils          = require "telescope.utils"
+local actions        = require "telescope.actions"
+local action_state   = require "telescope.actions.state"
 local entry_display  = require "telescope.pickers.entry_display"
+local Job            = require('plenary.job')
+local statusline     = require('config.statusline')
 
 local delta_bcommits = previewers.new_termopen_previewer {
   get_command = function(entry)
@@ -212,6 +216,74 @@ function M.go_to_references()
       previewer = previewers.vim_buffer_vimgrep.new({}),
     }):find()
   end)
+end
+
+function M.commit()
+  local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", "")
+  local displayer = entry_display.create {
+    separator = "",
+    items = {
+      { width = 1 },
+      { remaining = true },
+      { width = 100 },
+    },
+  }
+
+  local function make_display(entry)
+    local icon, hl_group = utils.get_devicons(entry.filename, false)
+    local parent = vim.fs.dirname(entry.filename)
+    local basename = vim.fs.basename(entry.filename)
+
+    return displayer {
+      { icon,            hl_group },
+      { ' ' .. basename, "TelescopeResultsIdentifier" },
+      { parent,          "TelescopeResultsComment" },
+    }
+  end
+
+  local results = {}
+  for _, file in ipairs(statusline.get_staged()) do
+    local abs_path = vim.fn.fnamemodify(file, ':p')
+    local file_path = vim.uri_from_fname(abs_path)
+    table.insert(results, { abs_path = abs_path, file_path = file_path })
+  end
+
+  pickers.new({}, {
+    prompt_title = "Commit",
+    default_text = last_commit,
+    finder = finders.new_table {
+      results = results,
+      entry_maker = function(entry)
+        return {
+          value = entry,
+          display = make_display,
+          filename = entry.abs_path,
+          ordinal = entry.abs_path,
+        }
+      end
+    },
+    attach_mappings = function(prompt_bufnr, map)
+      map({ "i", "n" }, "<M-CR>", function()
+        actions.close(prompt_bufnr)
+        vim.cmd('edit ' .. action_state.get_selected_entry().filename)
+      end)
+
+      actions.select_default:replace(function()
+        local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
+        actions.close(prompt_bufnr)
+
+        Job:new({
+          command = 'git',
+          args = { 'commit', '-m', prompt },
+          on_exit = vim.schedule_wrap(function()
+            statusline.set_staged(0)
+            statusline.refresh()
+          end),
+        }):start()
+      end)
+      return true
+    end,
+  }):find()
 end
 
 return M

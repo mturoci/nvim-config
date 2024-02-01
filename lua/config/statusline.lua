@@ -36,6 +36,11 @@ local Job = require('plenary.job')
 local prev_left = ''
 local prev_center = ''
 local prev_right = ''
+local prev_staged = {}
+local M = {
+  get_staged = function() return prev_staged end,
+  set_staged = function(staged) prev_staged = staged end
+}
 
 local function set_statusline(left, center, right, center_len)
   if left == nil then left = prev_left else prev_left = left end
@@ -66,6 +71,7 @@ while dir.filename ~= "" and dir.filename ~= "/" do
   end
   dir = path:new(dir:parent())
 end
+
 
 local function git_info()
   if git_dir == '' then
@@ -101,9 +107,13 @@ local function git_info()
       local untracked = 0
       local unpushed = 0
 
+      prev_staged = {}
       for _, line in pairs(result) do
         if string.sub(line, 1, 2) == "??" then untracked = untracked + 100 end
-        if string.sub(line, 1, 1) ~= " " then staged = staged + 1 end
+        if string.sub(line, 1, 1) ~= " " then
+          staged = staged + 1
+          table.insert(prev_staged, string.sub(line, 4))
+        end
         if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
       end
 
@@ -241,6 +251,7 @@ vim.api.nvim_create_autocmd({ 'VimLeave' }, {
   end
 })
 
+-- TODO: Refactor into M.
 function Statusline_refresh_wrap(callback)
   return function(args)
     callback(args)
@@ -248,4 +259,8 @@ function Statusline_refresh_wrap(callback)
   end
 end
 
+-- TODO: Refactor into M.
 Refresh_statusline = refresh_statusline
+M.refresh = refresh_statusline
+
+return M

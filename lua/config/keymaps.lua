@@ -24,10 +24,6 @@ keymap("n", "<C-l>", "<C-w>l", silent)
 keymap("n", "<C-w>", "<C-w>w", silent) -- TODO: Remap to leader + w instead of CTRL + w
 
 -- Git.
-local commit = function()
-  local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", "")
-  OpenPopup('Commit Message', last_commit, 'SubmitCommitPopup')
-end
 
 keymap('n', '<leader>ga', Statusline_refresh_wrap(silent_shell('git add .')), {})
 keymap('n', '<leader>gr', Statusline_refresh_wrap(silent_shell('git reset .')), {})
@@ -35,7 +31,7 @@ keymap('n', '<leader>gs', Statusline_refresh_wrap(silent_shell('git stash')), {}
 keymap('n', '<leader>gp', Statusline_refresh_wrap(silent_shell('git stash pop')), {})
 keymap('n', '<leader>grh', Statusline_refresh_wrap(silent_shell('git reset --hard')), {})
 keymap('n', '<leader>grs', Statusline_refresh_wrap(silent_shell('git reset --soft HEAD~1')), {})
-keymap('n', '<leader>gc', commit, {})
+keymap('n', '<leader>gc', functions.commit, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
@@ -110,7 +106,7 @@ require('gitsigns').setup {
       return '<Ignore>'
     end, { expr = true })
 
-    map('n', '<C-H>', function()
+    map('n', '<C-S-h>', function()
       if vim.wo.diff then return '[c' end
       vim.schedule(function() gs.prev_hunk() end)
       return '<Ignore>'
