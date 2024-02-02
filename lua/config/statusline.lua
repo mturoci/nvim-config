@@ -30,7 +30,6 @@ local TMUX_INFO = get_tmux_color("#" .. ("%06x"):format(COLOR_INFO), COLOR_FG)
 local TMUX_BG_LIGHT = get_tmux_color(COLOR_PRIMARY, COLOR_FG)
 local webdevicons = require 'nvim-web-devicons'
 local luv = vim.loop
-local Job = require('plenary.job')
 local path = require('plenary.path')
 local utils = require('config.utils')
 local prev_left = ''
@@ -53,7 +52,7 @@ local function set_statusline(left, center, right, center_len)
 
   local spaces = ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH
   center = table.concat({ center, string.rep(" ", spaces), TMUX_ORIGINAL_RIGHT })
-  Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", center } }):start()
+  utils.spawn("tmux", { "set-option", "-g", "status-right", center })
 end
 
 for _, highlight in ipairs(HIGHLIGHTS) do
@@ -250,8 +249,7 @@ vim.api.nvim_create_autocmd({ 'VimLeave' }, {
   group = status_group,
   pattern = '*',
   callback = function()
-    Job:new({ command = 'tmux', args = { "set-option", "-g", "status-right", TMUX_ORIGINAL_RIGHT }, detached = true })
-        :start()
+    utils.spawn("tmux", { "set-option", "-g", "status-right", TMUX_ORIGINAL_RIGHT })
   end
 })
 
