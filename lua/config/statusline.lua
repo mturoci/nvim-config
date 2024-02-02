@@ -98,7 +98,6 @@ local function git_info()
   local changed = 0
   local untracked = 0
   local unpushed = 0
-  local stdout = luv.new_pipe()
 
   utils.spawn("git", { "status", "-s" },
     function(err, data)
@@ -128,7 +127,6 @@ local function git_info()
       local git_str = table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
       set_statusline(git_str)
     end)
-
 
   return nil
 end
