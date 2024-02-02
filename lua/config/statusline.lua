@@ -99,34 +99,36 @@ local function git_info()
   local untracked = 0
   local unpushed = 0
   local stdout = luv.new_pipe()
-  luv.spawn("git", { args = { "status", "-s" }, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
-    local bg_light = "%#StatuslineBackgroundLight#"
-    local staged_str = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, bg_light }) or ""
-    local changed_str = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bg_light }) or ""
-    local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
-    local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
 
-    local git_str = table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
-    set_statusline(git_str)
-  end))
+  utils.spawn("git", { "status", "-s" },
+    function(err, data)
+      if err then return end
 
-  luv.read_start(stdout, function(err, data)
-    if err then return end
-
-    if data then
-      local lines = vim.split(data, "\n")
-      table.remove(lines, #lines)
-      prev_staged = {}
-      for _, line in pairs(lines) do
-        if string.sub(line, 1, 2) == "??" then untracked = untracked + 1 end
-        if string.sub(line, 1, 1) ~= " " then
-          staged = staged + 1
-          table.insert(prev_staged, string.sub(line, 4))
+      if data then
+        local lines = vim.split(data, "\n")
+        table.remove(lines, #lines)
+        prev_staged = {}
+        for _, line in pairs(lines) do
+          if string.sub(line, 1, 2) == "??" then untracked = untracked + 1 end
+          if string.sub(line, 1, 1) ~= " " then
+            staged = staged + 1
+            table.insert(prev_staged, string.sub(line, 4))
+          end
+          if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
         end
-        if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
       end
-    end
-  end)
+    end,
+    function()
+      local bg_light = "%#StatuslineBackgroundLight#"
+      local staged_str = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, bg_light }) or ""
+      local changed_str = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bg_light }) or ""
+      local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
+      local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
+
+      local git_str = table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
+      set_statusline(git_str)
+    end)
+
 
   return nil
 end
