@@ -36,6 +36,7 @@ keymap('n', '<leader>gc', functions.commit, {})
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
+keymap('n', '<leader>w', ':write<CR>', silent)
 
 -- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -50,13 +51,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', 'gi', vim.lsp.buf.implementation, opts)
     keymap('n', 'gr', functions.go_to_references, opts)
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-    keymap('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
-    keymap('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
     keymap('n', '<M-m>', vim.diagnostic.goto_prev, opts)
     keymap('n', '<C-m>', vim.diagnostic.goto_next, opts)
-    keymap('n', '<space>wl', function()
-      print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    end, opts)
     keymap('n', '<space>D', vim.lsp.buf.type_definition, opts)
     keymap('n', '<space>rn', Rename, opts)
     keymap({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
