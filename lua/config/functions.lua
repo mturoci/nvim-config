@@ -190,6 +190,7 @@ function M.go_to_references()
 
     pickers.new({}, {
       results_title = results_title,
+      initial_mode = "normal",
       finder = finders.new_table({
         results = items,
         entry_maker = function(entry)
@@ -204,6 +205,10 @@ function M.go_to_references()
       }),
       sorter = conf.generic_sorter({}),
       previewer = previewers.vim_buffer_vimgrep.new({}),
+      mappings = {
+        i = { ["<CR>"] = actions.select_default + actions.center },
+        n = { ["<CR>"] = actions.select_default + actions.center },
+      },
     }):find()
   end)
 end
@@ -238,9 +243,12 @@ function M.commit()
     table.insert(results, { abs_path = abs_path, file_path = file_path })
   end
 
+  illuminate.toggle()
   pickers.new({}, {
     prompt_title = "Commit",
+    prompt_prefix = "",
     default_text = last_commit,
+    initial_mode = "normal",
     finder = finders.new_table {
       results = results,
       entry_maker = function(entry)
@@ -255,6 +263,7 @@ function M.commit()
     attach_mappings = function(prompt_bufnr, map)
       map({ "i", "n" }, "<M-CR>", function()
         actions.close(prompt_bufnr)
+        illuminate.toggle()
         vim.cmd('edit ' .. action_state.get_selected_entry().filename)
       end)
 
@@ -264,6 +273,7 @@ function M.commit()
         local uv = vim.loop
         local stdout = uv.new_pipe()
 
+        illuminate.toggle()
         uv.spawn("git", { args = { "commit", "-m", prompt }, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
           statusline.refresh()
         end))
@@ -282,6 +292,8 @@ function M.commit()
       return true
     end,
   }):find()
+  -- Set cursor to the first col.
+  vim.schedule(function() vim.api.nvim_win_set_cursor(0, { 1, 0 }) end)
 end
 
 return M

@@ -49,12 +49,11 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', 'K', vim.lsp.buf.hover, opts)
     keymap('n', 'gi', vim.lsp.buf.implementation, opts)
     keymap('n', 'gr', functions.go_to_references, opts)
-    keymap('n', 'ge', functions.go_to_references, opts)
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
     keymap('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
     keymap('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
-    keymap('n', '<C-[>', vim.diagnostic.goto_prev, opts)
-    keymap('n', '<C-]>', vim.diagnostic.goto_next, opts)
+    keymap('n', '<M-m>', vim.diagnostic.goto_prev, opts)
+    keymap('n', '<C-m>', vim.diagnostic.goto_next, opts)
     keymap('n', '<space>wl', function()
       print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
     end, opts)
@@ -88,7 +87,7 @@ keymap("n", "<leader>4", function() harpoon:list():select(4) end)
 keymap("n", "<C-S-P>", function() harpoon:list():prev() end)
 keymap("n", "<C-S-N>", function() harpoon:list():next() end)
 
--- Git signs.
+-- Git signs
 require('gitsigns').setup {
   on_attach = function(bufnr)
     local gs = package.loaded.gitsigns
@@ -99,20 +98,18 @@ require('gitsigns').setup {
       vim.keymap.set(mode, l, r, opts)
     end
 
-    -- Navigation
+    -- Navigation.
     map('n', '<C-h>', function()
-      if vim.wo.diff then return ']c' end
       vim.schedule(function() gs.next_hunk() end)
       return '<Ignore>'
     end, { expr = true })
 
-    map('n', '<C-S-h>', function()
-      if vim.wo.diff then return '[c' end
+    map('n', '<S-h>', function()
       vim.schedule(function() gs.prev_hunk() end)
       return '<Ignore>'
     end, { expr = true })
 
-    -- Actions
+    -- Actions.
     map('n', '<leader>hr', gs.reset_hunk)
     map('n', '<leader>hv', gs.preview_hunk)
   end
