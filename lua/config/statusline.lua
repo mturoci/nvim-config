@@ -21,7 +21,7 @@ local POWERLINE_RIGHT = " %#StatuslineBackground#"
 local POWERLINE_LEFT = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
 local TMUX_POWERLINE_LEFT = '#[fg=#3a3a3a]#[fg=#a7c080,bg=#3a3a3a]'
 local TMUX_POWERLINE_RIGHT = '#[bg=#262626,fg=#3a3a3a]#[bg=#262626]'
-local TMUX_RIGHT_LENGTH = 20
+local TMUX_RIGHT_LENGTH = 18
 local TMUX_ORIGINAL_RIGHT = '#(/Users/mturoci/.tmux/right_status.sh)'
 local TMUX_ERR = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
 local TMUX_WARN = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
@@ -148,8 +148,12 @@ local function file_info()
   local extension = vim.fn.fnamemodify(filename, ":e")
   local icon, iconhl = webdevicons.get_icon(filename, extension)
   local color = vim.fn.synIDattr(vim.fn.hlID(iconhl), "fg")
-  local str_len = str_count(filename, icon)
 
+  if icon then
+    icon = " " .. icon
+  end
+
+  local str_len = str_count(filename, icon)
   if str_len > 0 then
     str_len = str_len + 1 -- account for dirty.
     str_len = str_len + 4 -- account for powerline arrows.
@@ -209,7 +213,7 @@ local function get_center()
   return table.concat({
     TMUX_POWERLINE_LEFT,
     " ", get_tmux_color(color, COLOR_FG), icon or "", get_tmux_color(COLOR_PRIMARY, COLOR_FG), " ", filename,
-    dirty == 1 and "*" or " ",
+    dirty == 1 and "  " or "   ",
     errors, warnings, hints, info, " ",
     TMUX_POWERLINE_RIGHT
   }), file_str_len + lsp_str_len
