@@ -244,7 +244,6 @@ function M.commit()
     table.insert(results, { abs_path = abs_path, file_path = file_path })
   end
 
-
   illuminate.toggle()
   pickers.new({}, {
     prompt_title = "Commit",
@@ -264,7 +263,6 @@ function M.commit()
     },
     previewer = previewers.new_termopen_previewer {
       get_command = function(entry)
-        print(entry.filename)
         return { 'git', '-c', 'core.pager=delta', '-c', 'delta.side-by-side=false', 'diff', '--staged', entry.filename }
       end
     },
