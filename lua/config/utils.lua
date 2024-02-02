@@ -1,4 +1,5 @@
 local M = {}
+local uv = vim.loop
 
 M.setTimeout = function(timeout, callback)
   local timer = vim.loop.new_timer()
@@ -17,6 +18,17 @@ M.debounce = function(timeout, callback)
     if timer ~= nil then M.clearTimeout(timer) end
     timer = M.setTimeout(timeout, callback)
   end
+end
+
+M.spawn = function(cmd, args, on_data, on_exit)
+  local stdout = uv.new_pipe()
+
+  uv.spawn(cmd, { args = args, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
+    if on_exit then on_exit() end
+  end))
+  uv.read_start(stdout, vim.schedule_wrap(function(err, data)
+    if on_data then on_data(err, data) end
+  end))
 end
 
 return M

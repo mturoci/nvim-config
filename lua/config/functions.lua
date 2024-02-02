@@ -1,26 +1,27 @@
-local M              = {}
-local api            = vim.api
-local popup          = require('plenary.popup')
-local illuminate     = require('illuminate')
-local previewers     = require('telescope.previewers')
-local pickers        = require "telescope.pickers"
-local builtin        = require 'telescope.builtin'
-local finders        = require "telescope.finders"
-local conf           = require("telescope.config").values
-local utils          = require "telescope.utils"
-local actions        = require "telescope.actions"
-local action_state   = require "telescope.actions.state"
-local entry_display  = require "telescope.pickers.entry_display"
-local statusline     = require('config.statusline')
+local M               = {}
+local api             = vim.api
+local popup           = require('plenary.popup')
+local illuminate      = require('illuminate')
+local previewers      = require('telescope.previewers')
+local pickers         = require "telescope.pickers"
+local builtin         = require 'telescope.builtin'
+local finders         = require "telescope.finders"
+local conf            = require("telescope.config").values
+local telescope_utils = require "telescope.utils"
+local actions         = require "telescope.actions"
+local action_state    = require "telescope.actions.state"
+local entry_display   = require "telescope.pickers.entry_display"
+local statusline      = require 'config.statusline'
+local utils           = require 'config.utils'
 
-local delta_bcommits = previewers.new_termopen_previewer {
+local delta_bcommits  = previewers.new_termopen_previewer {
   get_command = function(entry)
     return { 'git', '-c', 'core.pager=delta', '-c', 'delta.side-by-side=false', 'diff', entry.value .. '^!', '--',
       entry.current_file }
   end
 }
 
-local delta          = previewers.new_termopen_previewer {
+local delta           = previewers.new_termopen_previewer {
   get_command = function(entry)
     return { 'git', '-c', 'core.pager=delta', '-c', 'delta.side-by-side=false', 'diff', entry.path }
   end
@@ -178,7 +179,7 @@ function M.go_to_references()
     }
 
     local function make_display(entry)
-      local icon, hl_group = utils.get_devicons(entry.filename, false)
+      local icon, hl_group = telescope_utils.get_devicons(entry.filename, false)
       local parent = vim.fs.dirname(entry.filename)
       return displayer {
         { icon,                        hl_group },
@@ -225,7 +226,7 @@ function M.commit()
   }
 
   local function make_display(entry)
-    local icon, hl_group = utils.get_devicons(entry.filename, false)
+    local icon, hl_group = telescope_utils.get_devicons(entry.filename, false)
     local parent = vim.fs.dirname(entry.filename)
     local basename = vim.fs.basename(entry.filename)
 
@@ -270,24 +271,8 @@ function M.commit()
       actions.select_default:replace(function()
         local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
         actions.close(prompt_bufnr)
-        local uv = vim.loop
-        local stdout = uv.new_pipe()
-
         illuminate.toggle()
-        uv.spawn("git", { args = { "commit", "-m", prompt }, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
-          statusline.refresh()
-        end))
-
-        uv.read_start(stdout, function(err, data)
-          if err then
-            print("ERROR: ", err)
-            return
-          end
-
-          if data then
-            print(data)
-          end
-        end)
+        utils.spawn("git", { "commit", "-m", prompt }, nil, statusline.refresh)
       end)
       return true
     end,
