@@ -142,7 +142,7 @@ return {
             i = { ["<M-CR>"] = actions.select_vertical, }
           },
           sorting_strategy = "ascending",
-          layout_config = { prompt_position = "top" },
+          layout_config = { prompt_position = "top", preview_width = 0.65 },
           prompt_prefix = " ",
           -- TODO: Doesn't work for git_status. Needs to be fixed in telescope itself.
           path_display = filename_first,
