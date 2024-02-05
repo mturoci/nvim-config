@@ -10,7 +10,6 @@ return {
   { 'nvim-tree/nvim-web-devicons' },
   { 'github/copilot.vim' },
   { 'tpope/vim-abolish' },
-  { 'tpope/vim-fugitive' },
   {
     'RRethy/vim-illuminate',
     config = function()
