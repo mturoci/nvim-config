@@ -4,8 +4,14 @@ local builtin      = require('telescope.builtin')
 local functions    = require('config.functions')
 
 local silent_shell = function(cmd)
-  return function()
+  return Statusline_refresh_wrap(function()
     vim.cmd('silent !' .. cmd .. ' > /dev/null 2>&1')
+  end)
+end
+
+local function git_with_curr_file(cmd)
+  return function()
+    silent_shell(cmd .. ' ' .. vim.fn.expand('%:p'))()
   end
 end
 
@@ -24,19 +30,22 @@ keymap("n", "<C-l>", "<C-w>l", silent)
 keymap("n", "<C-w>", "<C-w>w", silent) -- TODO: Remap to leader + w instead of CTRL + w
 
 -- Git.
-
-keymap('n', '<leader>ga', Statusline_refresh_wrap(silent_shell('git add .')), {})
-keymap('n', '<leader>gr', Statusline_refresh_wrap(silent_shell('git reset .')), {})
-keymap('n', '<leader>gs', Statusline_refresh_wrap(silent_shell('git stash')), {})
-keymap('n', '<leader>gp', Statusline_refresh_wrap(silent_shell('git stash pop')), {})
-keymap('n', '<leader>grh', Statusline_refresh_wrap(silent_shell('git reset --hard')), {})
-keymap('n', '<leader>grs', Statusline_refresh_wrap(silent_shell('git reset --soft HEAD~1')), {})
+keymap('n', '<leader>ga', silent_shell('git add .'), {})
+keymap('n', '<leader>gr', silent_shell('git reset .'), {})
+keymap('n', '<leader>gfr', git_with_curr_file('git reset'), {})
+keymap('n', '<leader>gfc', git_with_curr_file('git checkout --'), {}) -- Git file clean - remove changes.
+keymap('n', '<leader>gfa', git_with_curr_file('git add'), {})
+keymap('n', '<leader>gs', silent_shell('git stash'), {})
+keymap('n', '<leader>gp', silent_shell('git stash pop'), {})
+keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
+keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
 keymap('n', '<leader>gc', functions.commit, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
 keymap('n', '<leader>w', ':write<CR>', silent)
+keymap('n', '<leader>q', ':q!<CR>', silent)
 
 -- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
