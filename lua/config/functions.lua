@@ -206,10 +206,6 @@ function M.go_to_references()
       }),
       sorter = conf.generic_sorter({}),
       previewer = previewers.vim_buffer_vimgrep.new({}),
-      mappings = {
-        i = { ["<CR>"] = actions.select_default + actions.center },
-        n = { ["<CR>"] = actions.select_default + actions.center },
-      },
     }):find()
   end)
 end
@@ -250,6 +246,9 @@ function M.commit()
     prompt_prefix = "",
     default_text = last_commit,
     initial_mode = "normal",
+    layout_config = {
+      preview_width = 0.65,
+    },
     finder = finders.new_table {
       results = results,
       entry_maker = function(entry)

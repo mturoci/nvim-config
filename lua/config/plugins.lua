@@ -138,8 +138,14 @@ return {
         },
         defaults = {
           mappings = {
-            n = { ["<M-CR>"] = actions.select_vertical, },
-            i = { ["<M-CR>"] = actions.select_vertical, }
+            n = {
+              ["<CR>"] = actions.select_default + actions.center,
+              ["<M-CR>"] = actions.select_vertical + actions.center,
+            },
+            i = {
+              ["<CR>"] = actions.select_default + actions.center,
+              ["<M-CR>"] = actions.select_vertical + actions.center,
+            }
           },
           sorting_strategy = "ascending",
           layout_config = { prompt_position = "top", preview_width = 0.65 },
