@@ -225,11 +225,12 @@ function M.commit()
     local icon, hl_group = telescope_utils.get_devicons(entry.filename, false)
     local parent = vim.fs.dirname(entry.filename)
     local basename = vim.fs.basename(entry.filename)
+    parent = vim.fn.fnamemodify(parent, ':~:.')
 
     return displayer {
-      { icon,            hl_group },
-      { ' ' .. basename, "TelescopeResultsIdentifier" },
-      { parent,          "TelescopeResultsComment" },
+      { icon,                   hl_group },
+      { ' ' .. basename .. ' ', "TelescopeResultsIdentifier" },
+      { parent,                 "TelescopeResultsComment" },
     }
   end
 
@@ -246,9 +247,6 @@ function M.commit()
     prompt_prefix = "",
     default_text = last_commit,
     initial_mode = "normal",
-    layout_config = {
-      preview_width = 0.65,
-    },
     finder = finders.new_table {
       results = results,
       entry_maker = function(entry)
