@@ -84,8 +84,8 @@ local function git_info()
     local head_file = luv.fs_open(git_dir .. "/HEAD", "r", 438)
     if head_file then
       head_data = luv.fs_read(head_file, head_stat.size, 0)
+      luv.fs_close(head_file)
     end
-    luv.fs_close(head_file)
   end
 
   branch = head_data:match("ref: refs/heads/([^\n\r%s]+)")
