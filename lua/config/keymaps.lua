@@ -60,7 +60,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     keymap('n', 'gd', vim.lsp.buf.definition, opts)
     keymap('n', 'K', vim.lsp.buf.hover, opts)
     keymap('n', 'gi', vim.lsp.buf.implementation, opts)
-    keymap('n', 'gu', functions.go_to_references, opts)
+    keymap('n', 'gu', functions.go_to_usages, opts)
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
     keymap('n', '<M-m>', vim.diagnostic.goto_prev, opts)
     keymap('n', '<C-m>', vim.diagnostic.goto_next, opts)

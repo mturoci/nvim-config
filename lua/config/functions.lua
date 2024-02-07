@@ -133,19 +133,21 @@ function Rename()
   OpenPopup('Refactor', var_name, 'SubmitRenamePopup')
 end
 
-function M.go_to_references()
+function M.go_to_usages()
   local params = vim.lsp.util.make_position_params()
   params.context = { includeDeclaration = false }
 
   vim.lsp.buf_request_all(0, 'textDocument/references', params, function(result)
     if not result then return end
-    local total = 0
 
+    -- LSP returns a weird hash table so extract the first and only value.
+    for _, v in pairs(result) do result = v.result end
+
+    local total = 0
     for _, _ in pairs(result) do total = total + 1 end
 
     if total == 1 then
-      for _, v in pairs(result) do
-        local ref = v.result[1]
+      for _, ref in pairs(result) do
         local start = ref.range.start
         vim.api.nvim_command('edit ' .. ref.uri)
         vim.api.nvim_win_set_cursor(0, { start.line + 1, start.character })
