@@ -20,11 +20,20 @@ M.debounce = function(timeout, callback)
   end
 end
 
+local function cleanup(handle)
+  if handle and not uv.is_closing(handle) then
+    handle:close()
+  end
+end
+
 M.spawn = function(cmd, args, on_data, on_exit)
   local stdout = uv.new_pipe()
+  local fd = nil
 
-  uv.spawn(cmd, { args = args, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
+  fd = uv.spawn(cmd, { args = args, stdio = { nil, stdout, nil } }, vim.schedule_wrap(function()
     if on_exit then on_exit() end
+    cleanup(fd)
+    cleanup(stdout)
   end))
   uv.read_start(stdout, vim.schedule_wrap(function(err, data)
     if on_data then on_data(err, data) end
