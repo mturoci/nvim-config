@@ -37,6 +37,8 @@ keymap('n', '<leader>gfc', git_with_curr_file('git checkout --'), {}) -- Git fil
 keymap('n', '<leader>gfa', git_with_curr_file('git add'), {})
 keymap('n', '<leader>gs', silent_shell('git stash'), {})
 keymap('n', '<leader>gp', silent_shell('git stash pop'), {})
+keymap('n', '<leader>gpl', silent_shell('git pull'), {})
+keymap('n', '<leader>gps', silent_shell('git push'), {})
 keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
 keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
 keymap('n', '<leader>gc', functions.commit, {})
