@@ -146,6 +146,10 @@ function M.go_to_usages()
     local total = 0
     for _, _ in pairs(result) do total = total + 1 end
 
+    if total == 0 then
+      print('No usages found')
+      return
+    end
     if total == 1 then
       for _, ref in pairs(result) do
         local start = ref.range.start
