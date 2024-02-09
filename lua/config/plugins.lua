@@ -10,6 +10,12 @@ return {
   { 'nvim-tree/nvim-web-devicons' },
   { 'github/copilot.vim' },
   { 'tpope/vim-abolish' },
+  { 'https://github.com/windwp/nvim-ts-autotag' },
+  {
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+    opts = {}
+  },
   {
     'RRethy/vim-illuminate',
     config = function()
@@ -164,6 +170,7 @@ return {
       require("telescope").load_extension("zf-native")
     end
   },
+
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
@@ -175,6 +182,7 @@ return {
         sync_install = false,
         highlight = { enable = true },
         indent = { enable = true },
+        autotag = { enable = true },
       })
     end
   },
