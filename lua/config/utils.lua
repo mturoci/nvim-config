@@ -118,14 +118,14 @@ function M.read_file(path)
   return data
 end
 
-M.async(function()
-  print('starting')
-  local data = M.await_all({
-    { M.read_file, "/Users/mturoci/.config/nvim/init.lua" },
-    { M.read_file, "/Users/mturoci/.config/nvim/lua/config/todo.txt" },
-  })
-  print("data", vim.inspect(data))
-end)()
+-- M.async(function()
+--   print('starting')
+--   local data = M.await_all({
+--     { M.read_file, "/Users/mturoci/.config/nvim/init.lua" },
+--     { M.read_file, "/Users/mturoci/.config/nvim/lua/config/todo.txt" },
+--   })
+--   print("data", vim.inspect(data))
+-- end)()
 
 
 return M

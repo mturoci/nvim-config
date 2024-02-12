@@ -29,7 +29,6 @@ local TMUX_HINT = get_tmux_color("#" .. ("%06x"):format(COLOR_HINT), COLOR_FG)
 local TMUX_INFO = get_tmux_color("#" .. ("%06x"):format(COLOR_INFO), COLOR_FG)
 local TMUX_BG_LIGHT = get_tmux_color(COLOR_PRIMARY, COLOR_FG)
 local webdevicons = require 'nvim-web-devicons'
-local luv = vim.loop
 local path = require('plenary.path')
 local utils = require('config.utils')
 local prev_left = ''
@@ -76,22 +75,8 @@ local function git_info()
     return ""
   end
 
-  local branch = ""
-
-  local head_stat = luv.fs_stat(git_dir .. "/HEAD")
-  local head_data = ""
-  if head_stat and head_stat.mtime then
-    local head_file = luv.fs_open(git_dir .. "/HEAD", "r", 438)
-    if head_file then
-      head_data = luv.fs_read(head_file, head_stat.size, 0)
-      luv.fs_close(head_file)
-    end
-  end
-
-  branch = head_data:match("ref: refs/heads/([^\n\r%s]+)")
-  if branch then
-    branch = "  " .. branch
-  end
+  local branch = utils.read_file(git_dir .. "/HEAD")
+  if branch then branch = "  " .. branch:match("ref: refs/heads/([^\n\r%s]+)") end
 
   local staged = 0
   local changed = 0
@@ -223,20 +208,20 @@ local function get_right()
   return table.concat({ POWERLINE_LEFT, math.floor(percent + 0.5), " 󱉸 " })
 end
 
-local function refresh_statusline()
+local refresh_statusline_async = utils.async(function()
   local center, center_len = get_center()
   set_statusline(get_left(), center, get_right(), center_len)
-end
+end)
 
 local status_group = vim.api.nvim_create_augroup('statusline', { clear = true })
 vim.api.nvim_create_autocmd(
   { 'WinEnter', 'BufEnter', 'BufWritePost', 'SessionLoadPost', 'FileChangedShellPost' }, {
     group = status_group,
-    callback = refresh_statusline,
+    callback = refresh_statusline_async,
   })
 vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
   group = status_group,
-  callback = utils.debounce(700, refresh_statusline)
+  callback = utils.debounce(700, refresh_statusline_async)
 })
 vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
   group = status_group,
@@ -257,12 +242,12 @@ vim.api.nvim_create_autocmd({ 'VimLeave' }, {
 function Statusline_refresh_wrap(callback)
   return function(args)
     callback(args)
-    refresh_statusline()
+    refresh_statusline_async()
   end
 end
 
 -- TODO: Refactor into M.
-Refresh_statusline = refresh_statusline
-M.refresh = refresh_statusline
+Refresh_statusline = refresh_statusline_async
+M.refresh = refresh_statusline_async
 
 return M
