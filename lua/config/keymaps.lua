@@ -49,6 +49,8 @@ keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
 keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
 keymap('n', '<leader>w', ':write<CR>', silent)
 keymap('n', '<leader>q', ':q!<CR>', silent)
+keymap('n', '<C-u>', '<C-u>zz', silent)
+keymap('n', '<C-d>', '<C-d>zz', silent)
 
 -- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
