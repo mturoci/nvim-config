@@ -279,12 +279,13 @@ function M.commit()
         vim.cmd('edit ' .. action_state.get_selected_entry().filename)
       end)
 
-      actions.select_default:replace(function()
+      actions.select_default:replace(utils.async(function()
         local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
         actions.close(prompt_bufnr)
         illuminate.toggle()
-        utils.spawn("git", { "commit", "-m", prompt }, nil, statusline.refresh)
-      end)
+        utils.spawn("git", { "commit", "-m", prompt })
+        statusline.refresh()
+      end))
       return true
     end,
   }):find()

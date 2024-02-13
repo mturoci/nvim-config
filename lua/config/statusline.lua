@@ -44,13 +44,15 @@ local function set_statusline(left, center, right, center_len)
   if center == nil then center = prev_center else prev_center = center end
   if right == nil then right = prev_right else prev_right = right end
 
-  local left_part = left ~= '' and table.concat({ "%#StatuslineBackgroundLight#", left, POWERLINE_RIGHT }) or ""
-  vim.o.statusline = table.concat({ left_part, "%=", "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
+  center_len = center_len or 0
+  -- TODO: Run these vim loops in parallel.
+  utils.vim_loop(function()
+    local left_part = table.concat({ "%#StatuslineBackgroundLight#", left })
+    vim.o.statusline = table.concat({ left_part, "%=", "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
+  end)
+  local spaces = utils.vim_loop(function() return ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH end)
 
-  if center_len == nil then return end
-
-  local spaces = ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH
-  center = table.concat({ center, string.rep(" ", spaces), TMUX_ORIGINAL_RIGHT })
+  center = table.concat({ center, string.rep(" ", spaces or 0), TMUX_ORIGINAL_RIGHT })
   utils.spawn("tmux", { "set-option", "-g", "status-right", center })
 end
 
@@ -75,6 +77,7 @@ local function git_info()
     return ""
   end
 
+  -- TODO: Run reading in parallel with the following spawn.
   local branch = utils.read_file(git_dir .. "/HEAD")
   if branch then branch = "  " .. branch:match("ref: refs/heads/([^\n\r%s]+)") end
 
@@ -83,36 +86,26 @@ local function git_info()
   local untracked = 0
   local unpushed = 0
 
-  utils.spawn("git", { "status", "-s" },
-    function(err, data)
-      if err then return end
+  local _, data = utils.spawn("git", { "status", "-s" })
+  local lines = vim.split(data, "\n")
+  table.remove(lines, #lines)
+  prev_staged = {}
+  for _, line in pairs(lines) do
+    if string.sub(line, 1, 2) == "??" then untracked = untracked + 1 end
+    if string.sub(line, 1, 1) ~= " " then
+      staged = staged + 1
+      table.insert(prev_staged, string.sub(line, 4))
+    end
+    if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
+  end
 
-      if data then
-        local lines = vim.split(data, "\n")
-        table.remove(lines, #lines)
-        prev_staged = {}
-        for _, line in pairs(lines) do
-          if string.sub(line, 1, 2) == "??" then untracked = untracked + 1 end
-          if string.sub(line, 1, 1) ~= " " then
-            staged = staged + 1
-            table.insert(prev_staged, string.sub(line, 4))
-          end
-          if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
-        end
-      end
-    end,
-    function()
-      local bg_light = "%#StatuslineBackgroundLight#"
-      local staged_str = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, bg_light }) or ""
-      local changed_str = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bg_light }) or ""
-      local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
-      local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
+  local bg_light = "%#StatuslineBackgroundLight#"
+  local staged_str = staged > 0 and table.concat({ "%#StatusLineInfo#", "  ", staged, bg_light }) or ""
+  local changed_str = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bg_light }) or ""
+  local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
+  local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
 
-      local git_str = table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
-      set_statusline(git_str)
-    end)
-
-  return nil
+  return table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
 end
 
 local function str_count(...)
@@ -179,11 +172,9 @@ local function lsp_info()
 end
 
 local function get_left()
-  local git_str = git_info()
-  if git_str == nil or git_str == "" then
-    return nil
-  end
-  return table.concat({ git_str, POWERLINE_RIGHT })
+  local git = git_info()
+  local ret = table.concat({ git, POWERLINE_RIGHT })
+  return ret
 end
 
 local function get_center()
@@ -204,7 +195,7 @@ local function get_center()
 end
 
 local function get_right()
-  local percent = vim.fn.line(".") / vim.fn.line("$") * 100
+  local percent = utils.vim_loop(function() return vim.fn.line(".") / vim.fn.line("$") * 100 end)
   return table.concat({ POWERLINE_LEFT, math.floor(percent + 0.5), " 󱉸 " })
 end
 
@@ -225,17 +216,17 @@ vim.api.nvim_create_autocmd({ 'TextChangedI', 'TextChanged' }, {
 })
 vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
   group = status_group,
-  callback = function()
+  callback = utils.async(function()
     local center, center_len = get_center()
-    set_statusline(nil, center, get_right(), center_len)
-  end
+    set_statusline(get_left(), center, get_right(), center_len)
+  end)
 })
 vim.api.nvim_create_autocmd({ 'VimLeave' }, {
   group = status_group,
   pattern = '*',
-  callback = function()
+  callback = utils.async(function()
     utils.spawn("tmux", { "set-option", "-g", "status-right", TMUX_ORIGINAL_RIGHT })
-  end
+  end)
 })
 
 -- TODO: Refactor into M.

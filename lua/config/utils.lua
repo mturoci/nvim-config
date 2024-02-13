@@ -27,28 +27,49 @@ local function cleanup(handle)
   end
 end
 
-M.spawn = function(cmd, args, on_data, on_exit)
+M.vim_loop = function(f)
+  local co = coroutine.running()
+  assert(co, "await must be called from a coroutine")
+  assert(type(f) == "function", "expected a function")
+  local ret = nil
+
+  vim.schedule(function()
+    print('About to run vim schedule')
+    ret = f()
+    coroutine.resume(co)
+  end)
+  coroutine.yield()
+  print('Returning from vim schedule', vim.inspect(ret))
+  if ret == nil then return nil else return ret end
+end
+
+M.spawn = function(cmd, args)
+  local co = coroutine.running()
+  assert(co, "await must be called from a coroutine")
+
+  local fd = nil
+  local ret = ''
+  local error = ''
   local stdout = uv.new_pipe()
   local stderr = uv.new_pipe()
-  local fd = nil
 
-  fd = uv.spawn(cmd, { args = args, stdio = { nil, stdout, stderr } }, vim.schedule_wrap(function(code, signal)
-    -- Check if args contain a string "commit".
-    if args[1] == "commit" then
-      print(cmd, vim.inspect(args), code, signal)
-    end
-    if on_exit then on_exit() end
+  fd = uv.spawn(cmd, { args = args, stdio = { nil, stdout, stderr } }, function()
     cleanup(fd)
     cleanup(stdout)
     cleanup(stderr)
-  end))
-  uv.read_start(stdout, vim.schedule_wrap(function(err, data)
-    if on_data then on_data(err, data) end
-  end))
-  uv.read_start(stderr, function(err, data)
-    if err == nil and data == nil then return end
-    print("stderr", err, data)
+    coroutine.resume(co)
   end)
+  uv.read_start(stdout, function(err, data)
+    if err then error(err) end
+    if data then ret = ret .. data end
+  end)
+  uv.read_start(stderr, function(err, data)
+    if err then error(err) end
+    if data then error = error .. data end
+  end)
+
+  coroutine.yield()
+  return error, ret
 end
 
 function M.await(func, ...)
