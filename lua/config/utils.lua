@@ -34,12 +34,10 @@ M.vim_loop = function(f)
   local ret = nil
 
   vim.schedule(function()
-    print('About to run vim schedule')
     ret = f()
     coroutine.resume(co)
   end)
   coroutine.yield()
-  print('Returning from vim schedule', vim.inspect(ret))
   if ret == nil then return nil else return ret end
 end
 
@@ -101,13 +99,12 @@ function M.await_all(funcs)
   for i, f in ipairs(funcs) do
     local func = f[1]
     assert(type(func) == "function", "expected a function as first argument")
-    local args = { unpack(f, 2) }
-    table.insert(args, function(...)
-      ret[i] = { ... }
+
+    coroutine.resume(coroutine.create(function()
+      ret[i] = func(unpack(f, 2))
       count = count + 1
       if count == #funcs then coroutine.resume(co) end
-    end)
-    func(unpack(args))
+    end))
   end
 
   coroutine.yield()
@@ -138,15 +135,5 @@ function M.read_file(path)
 
   return data
 end
-
--- M.async(function()
---   print('starting')
---   local data = M.await_all({
---     { M.read_file, "/Users/mturoci/.config/nvim/init.lua" },
---     { M.read_file, "/Users/mturoci/.config/nvim/lua/config/todo.txt" },
---   })
---   print("data", vim.inspect(data))
--- end)()
-
 
 return M
