@@ -81,8 +81,10 @@ local function git_info()
     return ""
   end
 
-  -- TODO: Run reading in parallel with the following spawn.
-  local branch = utils.read_file(git_dir .. "/HEAD")
+  local branch, git_status = utils.await_all({
+    { utils.read_file, git_dir .. "/HEAD" },
+    { utils.spawn,     "git",             { "status", "-s" } }
+  })
   if branch then branch = "  " .. branch:match("ref: refs/heads/([^\n\r%s]+)") end
 
   local staged = 0
@@ -90,11 +92,10 @@ local function git_info()
   local untracked = 0
   local unpushed = 0
 
-  local _, data = utils.spawn("git", { "status", "-s" })
-  local lines = vim.split(data, "\n")
-  table.remove(lines, #lines)
+  local git_status_lines = vim.split(git_status, "\n")
+  table.remove(git_status_lines, #git_status_lines)
   prev_staged = {}
-  for _, line in pairs(lines) do
+  for _, line in pairs(git_status_lines) do
     if string.sub(line, 1, 2) == "??" then untracked = untracked + 1 end
     if string.sub(line, 1, 1) ~= " " then
       staged = staged + 1

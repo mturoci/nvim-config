@@ -66,7 +66,8 @@ local function spawn(cmd, args)
   end)
 
   coroutine.yield()
-  return error, ret
+  if error ~= '' then error(error) end
+  return ret
 end
 
 local function await(func, ...)
