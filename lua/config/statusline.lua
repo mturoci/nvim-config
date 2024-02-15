@@ -45,12 +45,16 @@ local function set_statusline(left, center, right, center_len)
   if right == nil then right = prev_right else prev_right = right end
 
   center_len = center_len or 0
-  -- TODO: Run these vim loops in parallel.
-  utils.vim_loop(function()
+
+  local function update()
     local left_part = table.concat({ "%#StatuslineBackgroundLight#", left })
     vim.o.statusline = table.concat({ left_part, "%=", "%#StatuslineBackground#", "%#StatuslineBackgroundLight#", right })
-  end)
-  local spaces = utils.vim_loop(function() return ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH end)
+  end
+
+  local spaces, _ = utils.await_all({
+    { utils.vim_loop, function() return ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH end },
+    { utils.vim_loop, update }
+  })
 
   center = table.concat({ center, string.rep(" ", spaces or 0), TMUX_ORIGINAL_RIGHT })
   utils.spawn("tmux", { "set-option", "-g", "status-right", center })

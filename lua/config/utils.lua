@@ -1,23 +1,22 @@
-local M = {}
 local uv = vim.loop
 local unpack = table.unpack or unpack
 
-M.setTimeout = function(timeout, callback)
+local function setTimeout(timeout, callback)
   local timer = vim.loop.new_timer()
   timer:start(timeout, 0, vim.schedule_wrap(callback))
   return timer
 end
 
-M.clearTimeout = function(timer)
+local function clearTimeout(timer)
   timer:stop()
   timer:close()
 end
 
-M.debounce = function(timeout, callback)
+local function debounce(timeout, callback)
   local timer = nil
   return function()
-    if timer ~= nil then M.clearTimeout(timer) end
-    timer = M.setTimeout(timeout, callback)
+    if timer ~= nil then clearTimeout(timer) end
+    timer = setTimeout(timeout, callback)
   end
 end
 
@@ -27,9 +26,9 @@ local function cleanup(handle)
   end
 end
 
-M.vim_loop = function(f)
+local function vim_loop(f)
   local co = coroutine.running()
-  assert(co, "await must be called from a coroutine")
+  assert(co, "vim_loop must be called from a coroutine")
   assert(type(f) == "function", "expected a function")
   local ret = nil
 
@@ -41,7 +40,7 @@ M.vim_loop = function(f)
   if ret == nil then return nil else return ret end
 end
 
-M.spawn = function(cmd, args)
+local function spawn(cmd, args)
   local co = coroutine.running()
   assert(co, "await must be called from a coroutine")
 
@@ -70,7 +69,7 @@ M.spawn = function(cmd, args)
   return error, ret
 end
 
-function M.await(func, ...)
+local function await(func, ...)
   assert(type(func) == "function", "expected a function")
 
   local co = coroutine.running()
@@ -88,7 +87,7 @@ function M.await(func, ...)
   if ret == nil then return nil else return unpack(ret) end
 end
 
-function M.await_all(funcs)
+local function await_all(funcs)
   assert(type(funcs) == "table", "expected a table")
 
   local co = coroutine.running()
@@ -108,10 +107,10 @@ function M.await_all(funcs)
   end
 
   coroutine.yield()
-  return ret
+  return unpack(ret)
 end
 
-function M.async(func)
+local function async(func)
   assert(type(func) == "function", "expected a function")
   return function(...)
     local co = coroutine.create(func)
@@ -119,21 +118,32 @@ function M.async(func)
   end
 end
 
-function M.read_file(path)
-  local open_err, fd = M.await(uv.fs_open, path, "r", 438)
+local function read_file(path)
+  local open_err, fd = await(uv.fs_open, path, "r", 438)
   if open_err then error(open_err) end
 
-  local stat_err, stat = M.await(uv.fs_fstat, fd)
+  local stat_err, stat = await(uv.fs_fstat, fd)
   if stat_err then error(stat_err) end
   if stat == nil then error("file not found") end
 
-  local read_err, data = M.await(uv.fs_read, fd, stat.size, 0)
+  local read_err, data = await(uv.fs_read, fd, stat.size, 0)
   if read_err then error(read_err) end
 
-  local close_err = M.await(uv.fs_close, fd)
+  local close_err = await(uv.fs_close, fd)
   if close_err then error(close_err) end
 
   return data
 end
 
-return M
+return {
+  setTimeout = setTimeout,
+  clearTimeout = clearTimeout,
+  debounce = debounce,
+  cleanup = cleanup,
+  vim_loop = vim_loop,
+  spawn = spawn,
+  await = await,
+  await_all = await_all,
+  async = async,
+  read_file = read_file,
+}
