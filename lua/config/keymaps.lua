@@ -63,9 +63,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     -- See `:help vim.lsp.*` for documentation on any of the below functions
     local opts = { buffer = ev.buf }
     keymap('n', 'gD', vim.lsp.buf.declaration, opts)
-    keymap('n', 'gd', vim.lsp.buf.definition, opts)
+    keymap('n', 'gd', builtin.lsp_definitions, opts)
     keymap('n', 'K', vim.lsp.buf.hover, opts)
-    keymap('n', 'gi', vim.lsp.buf.implementation, opts)
+    keymap('n', 'gi', builtin.lsp_implementations, opts)
     keymap('n', 'gu', functions.go_to_usages, opts)
     keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts)
     keymap('n', '<M-m>', vim.diagnostic.goto_prev, opts)
