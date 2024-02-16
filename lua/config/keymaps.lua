@@ -42,7 +42,8 @@ keymap('n', '<leader>gps', silent_shell('git push'), {})
 keymap('n', '<leader>grh', silent_shell('git reset --hard'), {})
 keymap('n', '<leader>grs', silent_shell('git reset --soft HEAD~1'), {})
 keymap('n', '<leader>gc', functions.commit, {})
-keymap('n', '<leader>gb', builtin.git_branches, {})
+keymap('n', '<leader>gbl', builtin.git_branches, {})
+keymap('n', '<leader>gbt', silent_shell('git checkout -'), {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
