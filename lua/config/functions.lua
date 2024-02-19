@@ -143,15 +143,23 @@ function M.go_to_usages()
     -- LSP returns a weird hash table so extract the first and only value.
     for _, v in pairs(result) do result = v.result end
 
-    local total = 0
-    for _, _ in pairs(result) do total = total + 1 end
-
-    if total == 0 then
-      print('No usages found')
-      return
+    -- Filter out all references that are part of import statements.
+    -- TODO: Open files in parallel, think about using ast parsing to determine if it's an import.
+    local filtered_refs = {}
+    for _, ref in ipairs(result) do
+      local file_path = ref.uri
+      local lines = vim.fn.readfile(vim.uri_to_fname(file_path))
+      if not lines[ref.range.start.line + 1]:match('^import') then
+        table.insert(filtered_refs, ref)
+      end
     end
+
+    local total = 0
+    for _, _ in ipairs(filtered_refs) do total = total + 1 end
+
+    if total == 0 then return end
     if total == 1 then
-      for _, ref in pairs(result) do
+      for _, ref in ipairs(filtered_refs) do
         local start = ref.range.start
         vim.api.nvim_command('edit ' .. ref.uri)
         vim.api.nvim_win_set_cursor(0, { start.line + 1, start.character })
@@ -161,7 +169,7 @@ function M.go_to_usages()
 
     local files = {}
     local items = {}
-    for _, ref in ipairs(result) do
+    for _, ref in ipairs(filtered_refs) do
       local item = {}
       local filename = vim.uri_to_fname(ref.uri)
       if not files[filename] then files[filename] = 1 end
