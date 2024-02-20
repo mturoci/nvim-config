@@ -52,7 +52,13 @@ local function set_statusline(left, center, right, center_len)
   end
 
   local spaces, _ = utils.await_all({
-    { utils.vim_loop, function() return ((vim.fn.winwidth(0) - center_len) / 2) - TMUX_RIGHT_LENGTH end },
+    { utils.vim_loop, function()
+      local total_width = 0
+      for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+        total_width = total_width + vim.fn.winwidth(win_id)
+      end
+      return ((total_width - center_len) / 2) - TMUX_RIGHT_LENGTH
+    end },
     { utils.vim_loop, update }
   })
 
