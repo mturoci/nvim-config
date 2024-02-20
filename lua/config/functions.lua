@@ -290,10 +290,11 @@ function M.commit()
 
       actions.select_default:replace(utils.async(function()
         local prompt = action_state.get_current_picker(prompt_bufnr):_get_prompt()
-        actions.close(prompt_bufnr)
-        illuminate.toggle()
         utils.spawn("git", { "commit", "-m", prompt })
-        statusline.refresh()
+        utils.vim_loop(function()
+          actions.close(prompt_bufnr)
+          illuminate.toggle()
+        end)
       end))
       return true
     end,

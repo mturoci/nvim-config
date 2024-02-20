@@ -46,7 +46,6 @@ local function spawn(cmd, args)
 
   local fd = nil
   local ret = ''
-  local error = ''
   local stdout = uv.new_pipe()
   local stderr = uv.new_pipe()
 
