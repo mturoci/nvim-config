@@ -263,6 +263,7 @@ function M.commit()
     prompt_title = "Commit",
     prompt_prefix = "",
     default_text = last_commit,
+    get_status_text = function() return "" end,
     initial_mode = "normal",
     finder = finders.new_table {
       results = results,
