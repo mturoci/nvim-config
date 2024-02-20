@@ -83,14 +83,22 @@ local function git_info()
 
   local branch, git_status = utils.await_all({
     { utils.read_file, git_dir .. "/HEAD" },
-    { utils.spawn,     "git",             { "status", "-s" } }
+    { utils.spawn,     "git",             { "status", "-s" } },
   })
-  if branch then branch = "  " .. branch:match("ref: refs/heads/([^\n\r%s]+)") end
+  branch = branch:match("ref: refs/heads/([^\n\r%s]+)")
+  local unpulled, unpushed = utils.await_all({
+    { utils.spawn, "git", { "rev-list", "--count", "HEAD..origin/" .. branch } },
+    { utils.spawn, "git", { "rev-list", "--count", "origin/" .. branch .. "..HEAD" } }
+  })
+
+  if branch then branch = "  " .. branch end
+
+  unpulled = tonumber(unpulled) or 0
+  unpushed = tonumber(unpushed) or 0
 
   local staged = 0
   local changed = 0
   local untracked = 0
-  local unpushed = 0
 
   local git_status_lines = vim.split(git_status, "\n")
   table.remove(git_status_lines, #git_status_lines)
@@ -109,8 +117,9 @@ local function git_info()
   local changed_str = changed > 0 and table.concat({ "%#StatusLineWarn#", " 󰏫 ", changed, bg_light }) or ""
   local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
   local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
+  local unpulled_str = unpulled > 0 and table.concat({ "%#StatusLineHint#", "  ", unpulled, bg_light }) or ""
 
-  return table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str })
+  return table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str, unpulled_str })
 end
 
 local function str_count(...)

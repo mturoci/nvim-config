@@ -57,16 +57,16 @@ local function spawn(cmd, args)
     coroutine.resume(co)
   end)
   uv.read_start(stdout, function(err, data)
-    if err then error(err) end
+    if err then print(err) end
     if data then ret = ret .. data end
   end)
   uv.read_start(stderr, function(err, data)
-    if err then error(err) end
-    if data then error = error .. data end
+    if err then print(err) end
+    -- Some commands print to stderr even if they succeed (e.g. git).
+    if data then ret = ret .. data end
   end)
 
   coroutine.yield()
-  if error ~= '' then error(error) end
   return ret
 end
 
