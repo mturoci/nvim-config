@@ -135,6 +135,17 @@ local function read_file(path)
   return data
 end
 
+local function str_count(...)
+  local count = 0
+  for _, v in ipairs { ... } do
+    if v ~= nil and v ~= 0 then
+      count = count + string.len(tostring(v))
+    end
+  end
+
+  return count
+end
+
 return {
   setTimeout = setTimeout,
   clearTimeout = clearTimeout,
@@ -146,4 +157,5 @@ return {
   await_all = await_all,
   async = async,
   read_file = read_file,
+  str_count = str_count,
 }

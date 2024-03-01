@@ -1,0 +1,1 @@
+* Show references - React JSX shows up twice (opening and closing tag).
