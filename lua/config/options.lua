@@ -49,9 +49,10 @@ local options = {
 }
 
 local globals = {
-  mapleader = ' ', --- Map leader key to SPC
+  mapleader = ' ', --- Map leader key to SPACE
   -- maplocalleader              = ',',        --- Map local leader key to comma
   -- speeddating_no_mappings     = 1,          --- Disable default mappings for speeddating
+  skip_ts_context_commentstring_module = true --skip backwards compatibility routines and speed up loading.
 }
 
 -- vim.opt.shortmess:append('c');
