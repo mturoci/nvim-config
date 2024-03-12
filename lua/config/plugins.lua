@@ -183,7 +183,7 @@ return {
       local configs = require("nvim-treesitter.configs")
 
       configs.setup({
-        ensure_installed = { "lua", "vim", "vimdoc", "css", "python", "go", "javascript", "typescript", "html", "svelte", "json", "markdown" },
+        ensure_installed = { "lua", "vim", "vimdoc", "css", "python", "go", "javascript", "typescript", "html", "svelte", "json", "markdown", "tsx" },
         sync_install = false,
         highlight = { enable = true },
         indent = { enable = true },
@@ -199,16 +199,16 @@ return {
       require("nvim-surround").setup({})
     end
   },
-  {
-    'rose-pine/neovim',
-    name = 'rose-pine',
-    config = function()
-      require('rose-pine').setup({
-        variant = 'moon',
-      })
-      vim.cmd('colorscheme rose-pine-moon')
-    end
-  },
+  -- {
+  --   'rose-pine/neovim',
+  --   name = 'rose-pine',
+  --   config = function()
+  --     require('rose-pine').setup({
+  --       variant = 'moon',
+  --     })
+  --     vim.cmd('colorscheme rose-pine-moon')
+  --   end
+  -- },
   {
     "hrsh7th/nvim-cmp",
     event = "InsertEnter",

@@ -2,7 +2,7 @@ local function get_tmux_color(fg, bg)
   return table.concat({ "#[fg=", fg, ",bg=", bg, "]" })
 end
 
-local COLOR_BG = "#262626"
+local COLOR_BG = "#2C2B2A"
 local COLOR_FG = "#3a3a3a"
 local COLOR_PRIMARY = "#a7c080"
 local COLOR_ERR = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
