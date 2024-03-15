@@ -303,4 +303,27 @@ function M.commit()
   vim.schedule(function() vim.api.nvim_win_set_cursor(0, { 1, 0 }) end)
 end
 
+M.copy_github_link = utils.async(function()
+  local bufname = vim.api.nvim_buf_get_name(0)
+  local basename = vim.fn.fnamemodify(bufname, ':t')
+  local parent = vim.fs.dirname(bufname)
+  local git_remote_origin = utils.spawn('git', { 'config', '--get', 'remote.origin.url' })
+
+  parent = vim.fn.fnamemodify(parent, ':~:.')
+  bufname = parent .. '/' .. basename
+
+  if git_remote_origin == "" then return end
+
+  local repo_url = git_remote_origin:gsub("git@github.com:", "https://github.com/")
+  repo_url = repo_url:gsub("%.git", "")
+  repo_url = repo_url:gsub("\n", "")
+
+  utils.vim_loop(function()
+    local vstart = vim.fn.getpos('v')[2]
+    local vend = vim.fn.getpos('.')[2]
+    vim.fn.setreg('*', string.format("%s/blob/main/%s#L%d-L%d", repo_url, bufname, vstart, vend))
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, true, true), 'n', true)
+  end)
+end)
+
 return M
