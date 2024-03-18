@@ -104,8 +104,7 @@ local function get_symbols_outline()
   local bufnr = vim.api.nvim_get_current_buf()
   local winnr = vim.api.nvim_get_current_win()
   local params = vim.lsp.util.make_position_params(winnr)
-  -- TODO: Leverage client.request() instead of vim.lsp.buf_request.
-  local err, result, _, _ = utils.await(vim.lsp.buf_request, bufnr, "textDocument/documentSymbol", params)
+  local err, result, _, _ = utils.await(client.request, "textDocument/documentSymbol", params, utils.noop, bufnr)
   if err or not result then return '', 0 end
 
   local outline = {}

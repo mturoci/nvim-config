@@ -77,10 +77,22 @@ local function await(func, ...)
 
   local ret = nil
   local args = { ... }
-  table.insert(args, function(...)
+  local callback_set = false
+  local callback = function(...)
     ret = { ... }
     coroutine.resume(co)
-  end)
+  end
+
+  -- Check if any arg is a callback
+  for i, v in ipairs(args) do
+    if type(v) == "function" then
+      args[i] = callback
+      callback_set = true
+    end
+  end
+  if not callback_set then
+    table.insert(args, callback)
+  end
   func(unpack(args))
   coroutine.yield()
 
@@ -158,4 +170,5 @@ return {
   async = async,
   read_file = read_file,
   str_count = str_count,
+  noop = function() end,
 }
