@@ -175,7 +175,23 @@ return {
       require("telescope").load_extension("zf-native")
     end
   },
-
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("oil").setup({
+        skip_confirm_for_simple_edits = true,
+        lsp_file_methods = {
+          timeout_ms = 1000,
+          autosave_changes = true,
+        },
+        view_options = {
+          show_hidden = true,
+        }
+      })
+    end
+  },
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",

@@ -49,7 +49,7 @@ keymap('v', '<leader>ge', functions.copy_github_link, {})
 
 -- Utils.
 keymap("n", "<C-l>", ":noh<CR>", silent) -- Clear search occurences highlights
-keymap('n', '<leader>e', ':Ex<CR><CR>', silent)
+keymap('n', '<leader>e', ':Oil<CR>', silent)
 keymap('n', '<leader>w', ':write<CR>', silent)
 keymap('n', '<leader>q', ':q!<CR>', silent)
 keymap('n', '<C-u>', '<C-u>zz', silent)

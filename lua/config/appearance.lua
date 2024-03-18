@@ -42,6 +42,7 @@ local highlights = {
   DiagnosticHint                           = { fg = colors.info },
   DiagnosticInfo                           = { fg = colors.info },
   DiagnosticWarn                           = { fg = colors.warn },
+  Directory                                = { fg = colors.primary },
   DiffAdd                                  = { fg = colors.success },
   DiffChange                               = { fg = colors.warn },
   DiffDelete                               = { fg = colors.err },
