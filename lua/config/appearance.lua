@@ -67,6 +67,7 @@ local highlights = {
   TelescopeBorder                          = { fg = colors.primary },
   TelescopeMatching                        = { fg = colors.primary },
   TelescopePreviewMatch                    = { bg = colors.dark_primary },
+  TelescopeMultiSelection                  = { bg = colors.light_gray },
   Type                                     = { fg = colors.cyan },
   Visual                                   = { bg = colors.dark_primary },
   makeTarget                               = { fg = colors.primary },
