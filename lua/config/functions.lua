@@ -161,7 +161,7 @@ function M.go_to_usages()
     if total == 1 then
       for _, ref in ipairs(filtered_refs) do
         local start = ref.range.start
-        vim.api.nvim_command('edit ' .. ref.uri)
+        vim.api.nvim_command('edit ' .. ref.uri:gsub('^file://', ''))
         vim.api.nvim_win_set_cursor(0, { start.line + 1, start.character })
         return
       end
