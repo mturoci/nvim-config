@@ -89,15 +89,9 @@ local function build_outline(ret, symbols, row)
 end
 
 local function get_symbols_outline()
-  local clients = vim.lsp.get_active_clients()
-  local client = nil
-
-  for _, c in pairs(clients) do
-    if c.server_capabilities.documentSymbolProvider then
-      client = c
-      break
-    end
-  end
+  local client = utils.get_attached_lsp_client(function(c)
+    return c.server_capabilities.documentSymbolProvider
+  end)
 
   if not client then return '', 0 end
 

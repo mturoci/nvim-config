@@ -32,9 +32,30 @@ function SubmitRenamePopup(win_id)
   local val = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   ClosePopup(win_id)
 
+  local client = utils.get_attached_lsp_client(function(c)
+    return c.server_capabilities.renameProvider
+  end)
+  if not client then return end
+
+  local method = "textDocument/rename"
   local params = vim.lsp.util.make_position_params()
   params.newName = val[1]
-  vim.lsp.buf_request(0, "textDocument/rename", params)
+
+  local res = client.request_sync(method, params, 1000)
+
+  if res.err then
+    print("Rename failed: ", res.err)
+    return
+  end
+
+  vim.lsp.handlers[method](nil, res.result, {
+    method = method,
+    client_id = client.id,
+    bufnr = bufnr,
+    params = params,
+
+  })
+  vim.cmd("wa")
 end
 
 function ClosePopup(win_id)
@@ -99,7 +120,7 @@ M.my_git_bcommits = function(opts)
   builtin.git_bcommits(opts)
 end
 
-function Rename()
+function M.rename()
   local win = api.nvim_get_current_win()
   local buf = api.nvim_win_get_buf(win)
   local cursor = api.nvim_win_get_cursor(win)

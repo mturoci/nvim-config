@@ -158,6 +158,16 @@ local function str_count(...)
   return count
 end
 
+local function get_attached_lsp_client(predicate)
+  local clients = vim.lsp.get_active_clients()
+
+  for _, c in pairs(clients) do
+    if predicate(c) then return c end
+  end
+
+  return nil
+end
+
 return {
   setTimeout = setTimeout,
   clearTimeout = clearTimeout,
@@ -171,4 +181,5 @@ return {
   read_file = read_file,
   str_count = str_count,
   noop = function() end,
+  get_attached_lsp_client = get_attached_lsp_client
 }
