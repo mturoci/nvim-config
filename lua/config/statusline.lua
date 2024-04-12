@@ -2,14 +2,14 @@ local function get_tmux_color(fg, bg)
   return table.concat({ "#[fg=", fg, ",bg=", bg, "]" })
 end
 
-local COLOR_BG = "#2C2B2A"
-local COLOR_FG = "#3a3a3a"
-local COLOR_PRIMARY = "#a7c080"
-local COLOR_ERR = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
-local COLOR_WARN = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
-local COLOR_HINT = vim.api.nvim_get_hl(0, { name = "DiagnosticHint" }).fg
-local COLOR_INFO = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg
-local HIGHLIGHTS = {
+local COLOR_BG             = "#2C2B2A"
+local COLOR_FG             = "#3a3a3a"
+local COLOR_PRIMARY        = "#a7c080"
+local COLOR_ERR            = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
+local COLOR_WARN           = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
+local COLOR_HINT           = vim.api.nvim_get_hl(0, { name = "DiagnosticHint" }).fg
+local COLOR_INFO           = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg
+local HIGHLIGHTS           = {
   { name = "Background",      guibg = COLOR_BG, guifg = COLOR_FG },
   { name = "BackgroundLight", guibg = COLOR_FG, guifg = COLOR_PRIMARY },
   { name = "Error",           guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_ERR) },
@@ -17,25 +17,25 @@ local HIGHLIGHTS = {
   { name = "Hint",            guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_HINT) },
   { name = "Info",            guibg = COLOR_FG, guifg = "#" .. ("%06x"):format(COLOR_INFO) }
 }
-local POWERLINE_RIGHT = " %#StatuslineBackground#"
-local POWERLINE_LEFT = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
-local TMUX_POWERLINE_LEFT = '#[fg=#3a3a3a]#[fg=#a7c080,bg=#3a3a3a]'
-local TMUX_POWERLINE_RIGHT = '#[bg=#262626,fg=#3a3a3a]#[bg=#262626]'
-local TMUX_RIGHT_LENGTH = 18
-local TMUX_ORIGINAL_RIGHT = '#(/Users/mturoci/.tmux/right_status.sh)'
-local TMUX_ERR = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
-local TMUX_WARN = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
-local TMUX_HINT = get_tmux_color("#" .. ("%06x"):format(COLOR_HINT), COLOR_FG)
-local TMUX_INFO = get_tmux_color("#" .. ("%06x"):format(COLOR_INFO), COLOR_FG)
-local TMUX_BG_LIGHT = get_tmux_color(COLOR_PRIMARY, COLOR_FG)
-local webdevicons = require 'nvim-web-devicons'
-local path = require('plenary.path')
-local utils = require('config.utils')
-local prev_left = ''
-local prev_center = ''
-local prev_right = ''
-local prev_staged = {}
-local M = {
+local POWERLINE_RIGHT      = " %#StatuslineBackground#"
+local POWERLINE_LEFT       = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
+local TMUX_POWERLINE_LEFT  = table.concat({ "#[fg=", COLOR_FG, "]#[fg=", COLOR_PRIMARY, ",bg=", COLOR_FG, "]" })
+local TMUX_POWERLINE_RIGHT = table.concat({ "#[bg=", COLOR_BG, ",fg=", COLOR_FG, "]", "#[bg=", COLOR_BG, "]" })
+local TMUX_RIGHT_LENGTH    = 18
+local TMUX_ORIGINAL_RIGHT  = '#(/Users/mturoci/.tmux/right_status.sh)'
+local TMUX_ERR             = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
+local TMUX_WARN            = get_tmux_color("#" .. ("%06x"):format(COLOR_WARN), COLOR_FG)
+local TMUX_HINT            = get_tmux_color("#" .. ("%06x"):format(COLOR_HINT), COLOR_FG)
+local TMUX_INFO            = get_tmux_color("#" .. ("%06x"):format(COLOR_INFO), COLOR_FG)
+local TMUX_BG_LIGHT        = get_tmux_color(COLOR_PRIMARY, COLOR_FG)
+local webdevicons          = require 'nvim-web-devicons'
+local path                 = require('plenary.path')
+local utils                = require('config.utils')
+local prev_left            = ''
+local prev_center          = ''
+local prev_right           = ''
+local prev_staged          = {}
+local M                    = {
   get_staged = function() return prev_staged end,
 }
 
