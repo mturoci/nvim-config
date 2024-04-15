@@ -167,12 +167,17 @@ function M.go_to_usages()
     -- Filter out all references that are part of import statements.
     -- TODO: Open files in parallel, think about using ast parsing to determine if it's an import.
     local filtered_refs = {}
+    local prev_line = ''
     for _, ref in ipairs(result) do
       local file_path = ref.uri
       local lines = vim.fn.readfile(vim.uri_to_fname(file_path))
-      if not lines[ref.range.start.line + 1]:match('^import') then
+      local line = lines[ref.range.start.line + 1]
+
+      if prev_line ~= line and not line:match('^import') and not line:match('^[ \t]*>*</%w+>') then
         table.insert(filtered_refs, ref)
       end
+
+      prev_line = line
     end
 
     local total = 0
