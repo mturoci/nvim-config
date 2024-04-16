@@ -1,2 +1,1 @@
 * Fix err thrown when no usage found.
-* Save all files on refactor.
