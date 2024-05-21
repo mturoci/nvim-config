@@ -1,1 +1,3 @@
 * Fix err thrown when no usage found.
+* Center screen after using gd.
+* Figure out how to blacklist certain autocomplete suggestions - e.g. console log in JS.

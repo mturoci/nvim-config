@@ -1,9 +1,12 @@
-local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+local diagnostic_signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
 
-for type, icon in pairs(signs) do
+for type, icon in pairs(diagnostic_signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 end
+
+vim.fn.sign_define('DapBreakpoint', { text = " ", texthl = 'DiagnosticError', numhl = "" })
+vim.fn.sign_define('DapStopped', { text = "", texthl = 'Search', linehl = 'Search', numhl = "Search" })
 
 local colors = {
   background = "#2C2B2A",
