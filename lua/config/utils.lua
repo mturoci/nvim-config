@@ -132,19 +132,19 @@ end
 
 local function read_file(path)
   local open_err, fd = await(uv.fs_open, path, "r", 438)
-  if open_err then error(open_err) end
+  if open_err then return nil, open_err end
 
   local stat_err, stat = await(uv.fs_fstat, fd)
-  if stat_err then error(stat_err) end
-  if stat == nil then error("file not found") end
+  if open_err then return nil, stat_err end
+  if stat == nil then return nil, "file not found" end
 
   local read_err, data = await(uv.fs_read, fd, stat.size, 0)
-  if read_err then error(read_err) end
+  if read_err then return nil, read_err end
 
   local close_err = await(uv.fs_close, fd)
-  if close_err then error(close_err) end
+  if close_err then return nil, close_err end
 
-  return data
+  return data, nil
 end
 
 local function str_count(...)
