@@ -184,6 +184,7 @@ local function git_info()
   local staged = 0
   local changed = 0
   local untracked = 0
+  local conflict = 0
 
   local git_status_lines = vim.split(git_status, "\n")
   table.remove(git_status_lines, #git_status_lines)
@@ -195,6 +196,7 @@ local function git_info()
       table.insert(prev_staged, string.sub(line, 4))
     end
     if string.sub(line, 2, 2) ~= " " then changed = changed + 1 end
+    if string.sub(line, 1, 2) == "UU" then conflict = conflict + 1 end
   end
 
   local bg_light = "%#StatuslineBackgroundLight#"
@@ -203,8 +205,9 @@ local function git_info()
   local untracked_str = untracked > 0 and table.concat({ "%#StatusLineError#", "  ", untracked, bg_light }) or ""
   local unpushed_str = unpushed > 0 and table.concat({ "%#StatusLineHint#", "  ", unpushed, bg_light }) or ""
   local unpulled_str = unpulled > 0 and table.concat({ "%#StatusLineHint#", "  ", unpulled, bg_light }) or ""
+  local conflict_str = conflict > 0 and table.concat({ "%#StatusLineError#", "  ", conflict, bg_light }) or ""
 
-  return table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str, unpulled_str })
+  return table.concat({ branch, staged_str, changed_str, untracked_str, unpushed_str, unpulled_str, conflict_str })
 end
 
 local function file_info()

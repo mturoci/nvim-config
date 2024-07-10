@@ -356,4 +356,66 @@ M.copy_github_link = utils.async(function()
   end)
 end)
 
+local function split_conflict_into_panes()
+  local bufnr = api.nvim_get_current_buf()
+  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local ours, theirs = {}, {}
+  local in_conflict = false
+  local filetype = vim.bo.filetype
+
+  for _, line in ipairs(lines) do
+    if line:find('^<<<<<<<') then
+      in_conflict = true
+    elseif line:find('^=======$') then
+      in_conflict = false
+      table.insert(ours, '')
+      table.insert(theirs, '')
+    elseif line:find('^>>>>>>>') then
+      in_conflict = false
+    elseif in_conflict then
+      table.insert(theirs, line)
+    else
+      table.insert(ours, line)
+      table.insert(theirs, line)
+    end
+  end
+
+  api.nvim_command('vnew')
+  api.nvim_command('setf ' .. filetype)
+  local bufnr_theirs = api.nvim_get_current_buf()
+  api.nvim_buf_set_lines(bufnr_theirs, 0, -1, false, theirs)
+
+  api.nvim_command('wincmd p')
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, ours)
+
+  -- Attach a callback to the buffer that will be triggered on changes
+  api.nvim_buf_attach(bufnr, false, {
+    on_lines = function(_, _, _, firstline, lastline, lastlineUpdated)
+      print("First line", firstline)
+      print("Last line", lastline)
+      print("Last line updated", lastlineUpdated)
+    end
+  })
+  -- api.nvim_command('highlight ConflictLines guibg=#3c3c3c')
+  -- api.nvim_command('match ConflictLines /\\%>0v\\%<80v/')
+end
+
+local function on_buf_read()
+  local bufnr = api.nvim_get_current_buf()
+  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+  for _, line in ipairs(lines) do
+    if line:find('^<<<<<<<') or line:find('^>>>>>>>') then
+      split_conflict_into_panes()
+      break
+    end
+  end
+end
+
+api.nvim_create_autocmd({ 'BufReadPost' }, {
+  -- TODO: Read up on augroups and how to properly use them.
+  group = vim.api.nvim_create_augroup('conflict_resolve', { clear = true }),
+  callback = on_buf_read,
+})
+
 return M

@@ -182,6 +182,7 @@ return {
             i = {
               ["<CR>"] = actions.select_default + actions.center,
               ["<M-CR>"] = actions.select_vertical + actions.center,
+              ["<C-q>"] = actions.send_to_qflist,
             }
           },
           sorting_strategy = "ascending",
