@@ -12,7 +12,7 @@ function parse(content)
   return conflicts.parse(tmp_file)
 end
 
-describe('Conflicts', function()
+describe('Conflicts builder', function()
 local conflicts = require('config.conflicts')
   
   after_each(function()

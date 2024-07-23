@@ -390,10 +390,17 @@ local function split_conflict_into_panes()
 
   -- Attach a callback to the buffer that will be triggered on changes
   api.nvim_buf_attach(bufnr, false, {
-    on_lines = function(_, _, _, firstline, lastline, lastlineUpdated)
-      print("First line", firstline)
-      print("Last line", lastline)
-      print("Last line updated", lastlineUpdated)
+    on_lines = function(_, _, _, first_line, last_line, new_end)
+      local lines_added = new_end - first_line
+      local lines_removed = last_line - first_line
+
+      if lines_added > lines_removed then
+        print("Lines were added from line " .. first_line + 1 .. " to line " .. new_end)
+      elseif lines_added < lines_removed then
+        print("Lines were removed from line " .. first_line + 1 .. " to line " .. last_line)
+      elseif lines_added == lines_removed then
+        print("A single line was changed at line " .. first_line + 1)
+      end
     end
   })
   -- api.nvim_command('highlight ConflictLines guibg=#3c3c3c')
