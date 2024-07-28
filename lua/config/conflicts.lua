@@ -32,4 +32,36 @@ function M.parse(filepath)
   return conflicts
 end
 
+function M.update_lines(conflicts, from, to, side, is_delete)
+  local length = to - from + 1
+
+  if is_delete then
+    length = -length
+  end
+
+  for _, conflict in ipairs(conflicts) do
+    if is_delete and from < conflict.from and to >= conflict.from then
+      conflict.from = from
+      conflict.to = conflict.to + length
+      conflict[side].from = from
+      conflict[side].to = conflict[side].to + length
+    elseif is_delete and from > conflict.to then
+      -- noop
+    elseif is_delete and from >= conflict.from and to > conflict.to then
+      conflict.to = to
+      conflict[side].to = to
+    elseif from < conflict.from then
+      conflict.from = conflict.from + length
+      conflict.to = conflict.to + length
+      conflict[side].from = conflict[side].from + length
+      conflict[side].to = conflict[side].to + length
+    elseif from >= conflict.from and from <= conflict.to then
+      conflict.to = conflict.to + length
+      if conflict[side].to >= from then
+        conflict[side].to = conflict[side].to + length
+      end
+    end
+  end
+end
+
 return M

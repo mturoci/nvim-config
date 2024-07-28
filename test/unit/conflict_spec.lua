@@ -174,3 +174,174 @@ This is some text from their branch.
   end)
 
 end)
+
+describe("Conflict updater", function()
+  it("deletes lines inside conflict", function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 3},
+        theirs = {from = 4, to = 5}
+      }
+    }
+    conflicts.update_lines(conflictsT, 2, 3, 'ours', true)
+    assert.are.same(conflictsT[1].to, 3)
+    assert.are.same(conflictsT[1].ours.to, 1)
+  end)
+
+  it('deletes lines after conflict', function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 3},
+        theirs = {from = 4, to = 5}
+      }
+    }
+    conflicts.update_lines(conflictsT, 6, 7, 'ours', true)
+    assert.are.same(conflictsT[1].to, 5)
+    assert.are.same(conflictsT[1].ours.to, 3)
+  end)
+
+  it('deletes lines before conflict', function()
+    local conflictsT = {
+      {
+        from = 3,
+        to = 9,
+        ours = {from = 3, to = 5},
+        theirs = {from = 7, to = 9}
+      }
+    }
+    conflicts.update_lines(conflictsT, 1, 2, 'ours', true)
+    assert.are.same(conflictsT[1].from, 1)
+    assert.are.same(conflictsT[1].to, 7)
+    assert.are.same(conflictsT[1].ours.from, 1)
+    assert.are.same(conflictsT[1].ours.to, 3)
+  end)
+
+  it('deletes lines on the starting conflict intersection', function()
+    local conflictsT = {
+      {
+        from = 3,
+        to = 10,
+        ours = {from = 3, to = 6},
+        theirs = {from = 8, to = 10}
+      }
+    }
+    conflicts.update_lines(conflictsT, 2, 4, 'ours', true)
+    assert.are.same(conflictsT[1].from, 2)
+    assert.are.same(conflictsT[1].to, 7)
+    assert.are.same(conflictsT[1].ours.from, 2)
+    assert.are.same(conflictsT[1].ours.to, 3)
+  end)
+
+  it('deletes lines between two conflicts', function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 2},
+        theirs = {from = 4, to = 5}
+      },
+      {
+        from = 8,
+        to = 12,
+        ours = {from = 8, to = 9},
+        theirs = {from = 11, to = 12}
+      },
+    }
+    
+    conflicts.update_lines(conflictsT, 6, 7, 'ours', true)
+    assert.are.same(conflictsT[1], {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 2},
+        theirs = {from = 4, to = 5}
+    })
+    assert.are.same(conflictsT[2], {
+        from = 6,
+        to = 10,
+        ours = {from = 6, to = 7},
+        theirs = {from = 11, to = 12}
+    })
+  end)
+
+  it("adds lines correctly inside conflict", function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 3},
+        theirs = {from = 4, to = 5}
+      }
+    }
+    conflicts.update_lines(conflictsT, 2, 4, 'ours', false)
+    assert.are.same(conflictsT[1].to, 8)
+    assert.are.same(conflictsT[1].ours.to, 6)
+  end)
+
+  it('adds lines correctly after conflict', function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 3},
+        theirs = {from = 4, to = 5}
+      }
+    }
+    conflicts.update_lines(conflictsT, 6, 7, 'ours', false)
+    assert.are.same(conflictsT[1].from, 1)
+    assert.are.same(conflictsT[1].to, 5)
+    assert.are.same(conflictsT[1].ours.from, 1)
+    assert.are.same(conflictsT[1].ours.to, 3)
+  end)
+
+  it('adds lines correctly before conflict', function()
+    local conflictsT = {
+      {
+        from = 3,
+        to = 9,
+        ours = {from = 3, to = 5},
+        theirs = {from = 7, to = 9}
+      }
+    }
+    conflicts.update_lines(conflictsT, 1, 2, 'ours', false)
+    assert.are.same(conflictsT[1].from, 5)
+    assert.are.same(conflictsT[1].to, 11)
+    assert.are.same(conflictsT[1].ours.from, 5)
+    assert.are.same(conflictsT[1].ours.to, 7)
+  end)
+
+  it('adds lines between two conflicts', function()
+    local conflictsT = {
+      {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 2},
+        theirs = {from = 4, to = 5}
+      },
+      {
+        from = 8,
+        to = 12,
+        ours = {from = 8, to = 9},
+        theirs = {from = 11, to = 12}
+      },
+    }
+    
+    conflicts.update_lines(conflictsT, 6, 7, 'ours', false)
+    assert.are.same(conflictsT[1], {
+        from = 1,
+        to = 5,
+        ours = {from = 1, to = 2},
+        theirs = {from = 4, to = 5}
+    })
+    assert.are.same(conflictsT[2], {
+        from = 10,
+        to = 14,
+        ours = {from = 10, to = 11},
+        theirs = {from = 11, to = 12}
+    })
+  end)
+
+end)
