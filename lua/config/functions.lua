@@ -358,35 +358,35 @@ end)
 
 local function split_conflict_into_panes()
   local bufnr = api.nvim_get_current_buf()
-  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  local ours, theirs = {}, {}
-  local in_conflict = false
-  local filetype = vim.bo.filetype
-
-  for _, line in ipairs(lines) do
-    if line:find('^<<<<<<<') then
-      in_conflict = true
-    elseif line:find('^=======$') then
-      in_conflict = false
-      table.insert(ours, '')
-      table.insert(theirs, '')
-    elseif line:find('^>>>>>>>') then
-      in_conflict = false
-    elseif in_conflict then
-      table.insert(theirs, line)
-    else
-      table.insert(ours, line)
-      table.insert(theirs, line)
-    end
-  end
-
-  api.nvim_command('vnew')
-  api.nvim_command('setf ' .. filetype)
-  local bufnr_theirs = api.nvim_get_current_buf()
-  api.nvim_buf_set_lines(bufnr_theirs, 0, -1, false, theirs)
-
-  api.nvim_command('wincmd p')
-  api.nvim_buf_set_lines(bufnr, 0, -1, false, ours)
+  -- local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  -- local ours, theirs = {}, {}
+  -- local in_conflict = false
+  -- local filetype = vim.bo.filetype
+  --
+  -- for _, line in ipairs(lines) do
+  --   if line:find('^<<<<<<<') then
+  --     in_conflict = true
+  --   elseif line:find('^=======$') then
+  --     in_conflict = false
+  --     table.insert(ours, '')
+  --     table.insert(theirs, '')
+  --   elseif line:find('^>>>>>>>') then
+  --     in_conflict = false
+  --   elseif in_conflict then
+  --     table.insert(theirs, line)
+  --   else
+  --     table.insert(ours, line)
+  --     table.insert(theirs, line)
+  --   end
+  -- end
+  --
+  -- api.nvim_command('vnew')
+  -- api.nvim_command('setf ' .. filetype)
+  -- local bufnr_theirs = api.nvim_get_current_buf()
+  -- api.nvim_buf_set_lines(bufnr_theirs, 0, -1, false, theirs)
+  --
+  -- api.nvim_command('wincmd p')
+  -- api.nvim_buf_set_lines(bufnr, 0, -1, false, ours)
 
   -- Attach a callback to the buffer that will be triggered on changes
   api.nvim_buf_attach(bufnr, false, {
