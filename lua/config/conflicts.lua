@@ -6,10 +6,9 @@ function M.file_exists(file)
   return f ~= nil
 end
 
+-- TODO: Add origin from and to to every conflict to mark original conflict location for accepting.
 function M.parse(filepath)
-  if not M.file_exists(filepath) then
-    error("File does not exist.")
-  end
+  if not M.file_exists(filepath) then error("File does not exist.") end
 
   local conflicts = {}
   local conflict = {}
@@ -35,31 +34,23 @@ end
 function M.update_lines(conflicts, from, to, side, is_delete)
   local length = to - from + 1
 
-  if is_delete then
-    length = -length
-  end
+  if is_delete then length = -length end
 
   for _, conflict in ipairs(conflicts) do
-    if is_delete and from < conflict.from and to >= conflict.from then
-      conflict.from = from
+    -- Inside of a conflict.
+    if from >= conflict.from and to <= conflict.to and to <= (conflict.from + conflict[side].len) then
       conflict.to = conflict.to + length
-      conflict[side].from = from
-      conflict[side].to = conflict[side].to + length
-    elseif is_delete and from > conflict.to then
-      -- noop
-    elseif is_delete and from >= conflict.from and to > conflict.to then
-      conflict.to = to
-      conflict[side].to = to
-    elseif from < conflict.from then
+      conflict[side].len = conflict[side].len + length
+    -- Before a conflict.
+    elseif from < conflict.from and to < conflict.from then
       conflict.from = conflict.from + length
       conflict.to = conflict.to + length
-      conflict[side].from = conflict[side].from + length
-      conflict[side].to = conflict[side].to + length
-    elseif from >= conflict.from and from <= conflict.to then
-      conflict.to = conflict.to + length
-      if conflict[side].to >= from then
-        conflict[side].to = conflict[side].to + length
-      end
+    -- Start border of a conflict.
+    elseif is_delete and from < conflict.from and to <= conflict.from + conflict[side].len then
+      length = math.abs(length) - (conflict.from - from)
+      conflict.from = from
+      conflict.to = conflict.to - length
+      conflict[side].len = conflict[side].len - length
     end
   end
 end
