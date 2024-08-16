@@ -336,7 +336,11 @@ M.copy_github_link = utils.async(function()
   local git_remote_origin = utils.spawn('git', { 'config', '--get', 'remote.origin.url' })
 
   parent = vim.fn.fnamemodify(parent, ':~:.')
-  bufname = parent .. '/' .. basename
+  bufname = basename
+
+  if basename:match('%.md$') then
+    bufname = bufname .. '?plain=1'
+  end
 
   if git_remote_origin == "" then return end
 
