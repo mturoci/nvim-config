@@ -356,39 +356,56 @@ M.copy_github_link = utils.async(function()
   end)
 end)
 
-local function split_conflict_into_panes()
+local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
-  -- local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  -- local ours, theirs = {}, {}
-  -- local in_conflict = false
-  -- local filetype = vim.bo.filetype
-  --
-  -- for _, line in ipairs(lines) do
-  --   if line:find('^<<<<<<<') then
-  --     in_conflict = true
-  --   elseif line:find('^=======$') then
-  --     in_conflict = false
-  --     table.insert(ours, '')
-  --     table.insert(theirs, '')
-  --   elseif line:find('^>>>>>>>') then
-  --     in_conflict = false
-  --   elseif in_conflict then
-  --     table.insert(theirs, line)
-  --   else
-  --     table.insert(ours, line)
-  --     table.insert(theirs, line)
-  --   end
-  -- end
-  --
-  -- api.nvim_command('vnew')
-  -- api.nvim_command('setf ' .. filetype)
-  -- local bufnr_theirs = api.nvim_get_current_buf()
-  -- api.nvim_buf_set_lines(bufnr_theirs, 0, -1, false, theirs)
-  --
-  -- api.nvim_command('wincmd p')
-  -- api.nvim_buf_set_lines(bufnr, 0, -1, false, ours)
+  local filetype = vim.bo.filetype
+  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-  -- Attach a callback to the buffer that will be triggered on changes
+  -- Hide the current buffer
+  api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
+
+  -- Create new buffers
+  local buf1 = api.nvim_create_buf(false, true)
+  local buf2 = api.nvim_create_buf(false, true)
+
+  -- Set the content of the buffers
+  api.nvim_buf_set_lines(buf1, 0, -1, false, { "hello1", "world" })
+  api.nvim_buf_set_lines(buf2, 0, -1, false, { "hello2", "world" })
+
+  -- Define the window configuration
+  local win_config1 = {
+    relative = 'editor',
+    width = vim.o.columns / 2,
+    height = vim.o.lines,
+    col = 0,
+    row = 0
+  }
+
+  local win_config2 = {
+    relative = 'editor',
+    width = vim.o.columns / 2,
+    height = vim.o.lines,
+    col = vim.o.columns / 2,
+    row = 0
+  }
+  -- Add highlights using nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line}, {col_start},
+
+  -- Open new windows with the buffers
+  local win1 = api.nvim_open_win(buf1, true, win_config1)
+  local win2 = api.nvim_open_win(buf2, true, win_config2)
+  local ns = api.nvim_create_namespace('diff')
+
+  api.nvim_buf_set_extmark(buf1, ns, 0, 0, {
+    line_hl_group = 'Conflict',
+    hl_mode = 'blend',
+    hl_eol = true
+  })
+  api.nvim_buf_set_extmark(buf2, ns, 1, 0, {
+    line_hl_group = 'Conflict',
+    hl_mode = 'blend',
+    hl_eol = true
+  })
+
   api.nvim_buf_attach(bufnr, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
       local lines_added = new_end - first_line
@@ -403,17 +420,16 @@ local function split_conflict_into_panes()
       end
     end
   })
-  -- api.nvim_command('highlight ConflictLines guibg=#3c3c3c')
-  -- api.nvim_command('match ConflictLines /\\%>0v\\%<80v/')
 end
 
 local function on_buf_read()
+  -- TODO: Check if git is in merging status.
   local bufnr = api.nvim_get_current_buf()
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
   for _, line in ipairs(lines) do
     if line:find('^<<<<<<<') or line:find('^>>>>>>>') then
-      split_conflict_into_panes()
+      on_conflict()
       break
     end
   end
