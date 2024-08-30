@@ -357,6 +357,7 @@ M.copy_github_link = utils.async(function()
 end)
 
 local function on_conflict()
+  print('conflict')
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -388,7 +389,6 @@ local function on_conflict()
     col = vim.o.columns / 2,
     row = 0
   }
-  -- Add highlights using nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line}, {col_start},
 
   -- Open new windows with the buffers
   local win1 = api.nvim_open_win(buf1, true, win_config1)
@@ -437,18 +437,17 @@ local function on_conflict()
   })
 end
 
-local function on_buf_read()
-  -- TODO: Check if git is in merging status.
-  local bufnr = api.nvim_get_current_buf()
-  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+local on_buf_read = utils.async(function()
+  local git_status = utils.spawn("git", { 'diff', '--name-only', '--diff-filter=U' })
+  if git_status == "" then return end
 
-  for _, line in ipairs(lines) do
-    if line:find('^<<<<<<<') or line:find('^>>>>>>>') then
-      on_conflict()
-      break
+  utils.vim_loop(function()
+    local bufname = vim.api.nvim_buf_get_name(0)
+    for file in git_status:gmatch("[^\r\n]+") do
+      if bufname:match(file .. '$') then return on_conflict() end
     end
-  end
-end
+  end)
+end)
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {
   -- TODO: Read up on augroups and how to properly use them.
