@@ -406,6 +406,21 @@ local function on_conflict()
     hl_eol = true
   })
 
+  api.nvim_create_autocmd({ 'BufWinLeave' }, {
+    group = vim.api.nvim_create_augroup('buf_closed2', { clear = true }),
+    buffer = buf2,
+    callback = function()
+      api.nvim_win_close(win1, true)
+    end,
+  })
+  api.nvim_create_autocmd({ 'BufWinLeave' }, {
+    group = vim.api.nvim_create_augroup('buf_closed1', { clear = true }),
+    buffer = buf1,
+    callback = function()
+      api.nvim_win_close(win2, true)
+    end,
+  })
+
   api.nvim_buf_attach(bufnr, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
       local lines_added = new_end - first_line
