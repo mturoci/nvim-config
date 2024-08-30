@@ -357,7 +357,6 @@ M.copy_github_link = utils.async(function()
 end)
 
 local function on_conflict()
-  print('conflict')
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -442,7 +441,7 @@ local on_buf_read = utils.async(function()
   if git_status == "" then return end
 
   utils.vim_loop(function()
-    local bufname = vim.api.nvim_buf_get_name(0)
+    local bufname = api.nvim_buf_get_name(0)
     for file in git_status:gmatch("[^\r\n]+") do
       if bufname:match(file .. '$') then return on_conflict() end
     end
