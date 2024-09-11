@@ -2,7 +2,6 @@ local function get_tmux_color(fg, bg)
   return table.concat({ "#[fg=", fg, ",bg=", bg, "]" })
 end
 
-local COLOR_BG             = "#2C2B2A"
 local COLOR_FG             = "#3a3a3a"
 local COLOR_PRIMARY        = "#a7c080"
 local COLOR_ERR            = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
@@ -20,7 +19,7 @@ local HIGHLIGHTS           = {
 local POWERLINE_RIGHT      = " %#StatuslineBackground#"
 local POWERLINE_LEFT       = "%#StatuslineBackground#%#StatuslineBackgroundLight# "
 local TMUX_POWERLINE_LEFT  = table.concat({ "#[fg=", COLOR_FG, "]#[fg=", COLOR_PRIMARY, ",bg=", COLOR_FG, "]" })
-local TMUX_POWERLINE_RIGHT = table.concat({ "#[bg=", COLOR_BG, ",fg=", COLOR_FG, "]", "#[bg=default]" })
+local TMUX_POWERLINE_RIGHT = table.concat({ "#[bg=default,fg=", COLOR_FG, "]", "#[bg=default]" })
 local TMUX_RIGHT_LENGTH    = 18
 local TMUX_ORIGINAL_RIGHT  = '#(/Users/mturoci/.tmux/right_status.sh)'
 local TMUX_ERR             = get_tmux_color("#" .. ("%06x"):format(COLOR_ERR), COLOR_FG)
