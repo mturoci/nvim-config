@@ -72,6 +72,9 @@ local function on_conflict()
   -- Set the content of the buffers
   api.nvim_buf_set_lines(buf1, 0, -1, false, { "hello1", "world" })
   api.nvim_buf_set_lines(buf2, 0, -1, false, { "hello2", "world" })
+  -- Set the filetype of the buffers
+  api.nvim_buf_set_option(buf1, 'filetype', filetype)
+  api.nvim_buf_set_option(buf2, 'filetype', filetype)
 
   -- Define the window configuration
   local win_config1 = {

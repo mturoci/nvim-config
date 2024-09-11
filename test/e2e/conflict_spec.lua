@@ -19,9 +19,8 @@ describe('Conflict', function()
   end)
 
   it('Sets a buffer file type', function()
-    vim.fn.rpcrequest(nvim, 'nvim_buf_set_option', 0, 'filetype', 'lua')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict.txt')
     local result = vim.fn.rpcrequest(nvim, 'nvim_eval', '&filetype')
-    assert.is.equal('lua', result)
+    assert.is.equal('text', result)
   end)
-
 end)
