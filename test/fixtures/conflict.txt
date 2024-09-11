@@ -1,0 +1,5 @@
+<<<<<<< HEAD
+This is some text from the HEAD branch.
+=======
+This is some different text from another branch.
+>>>>>>> another-branch

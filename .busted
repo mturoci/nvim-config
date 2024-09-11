@@ -6,4 +6,7 @@ return {
     unit = {
         ROOT = {'./test/unit/'},
     },
+    e2e = {
+        ROOT = {'./test/e2e/'},
+    },
 }
