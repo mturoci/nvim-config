@@ -62,17 +62,14 @@ local function on_conflict()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-  -- Hide the current buffer
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
 
-  -- Create new buffers
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
 
-  -- Set the content of the buffers
   api.nvim_buf_set_lines(buf1, 0, -1, false, { "hello1", "world" })
   api.nvim_buf_set_lines(buf2, 0, -1, false, { "hello2", "world" })
-  -- Set the filetype of the buffers
+
   api.nvim_buf_set_option(buf1, 'filetype', filetype)
   api.nvim_buf_set_option(buf2, 'filetype', filetype)
 
