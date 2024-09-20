@@ -1,15 +1,5 @@
 local jobopts = { rpc = true, width = 80, height = 24, env = { NVIM_ENV = 'test' } }
 
-local function count_hidden_bufs(bufs)
-  local count = 0
-  for _, buf in ipairs(bufs) do
-    if buf.hidden == 0 then
-      count = count + 1
-    end
-  end
-  return count
-end
-
 describe('Conflict', function()
   local nvim
 
@@ -35,20 +25,20 @@ describe('Conflict', function()
 
   it('Closes both buffers when closing the left one', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict.txt')
-    local bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'getbufinfo()')
-    assert.is.equal(3, count_hidden_bufs(bufs))
+    local visible_bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'len(filter(getbufinfo(), "v:val.hidden == 0"))')
+    assert.is.equal(3, visible_bufs)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'q')
-    bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'getbufinfo()')
-    assert.is.equal(1, count_hidden_bufs(bufs))
+    visible_bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'len(filter(getbufinfo(), "v:val.hidden == 0"))')
+    assert.is.equal(1, visible_bufs)
   end)
 
   it('Closes both buffers when closing the right one', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict.txt')
-    local bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'getbufinfo()')
-    assert.is.equal(3, count_hidden_bufs(bufs))
+    local visible_bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'len(filter(getbufinfo(), "v:val.hidden == 0"))')
+    assert.is.equal(3, visible_bufs)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'wincmd w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'q')
-    bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'getbufinfo()')
-    assert.is.equal(1, count_hidden_bufs(bufs))
+    visible_bufs = vim.fn.rpcrequest(nvim, 'nvim_eval', 'len(filter(getbufinfo(), "v:val.hidden == 0"))')
+    assert.is.equal(1, visible_bufs)
   end)
 end)
