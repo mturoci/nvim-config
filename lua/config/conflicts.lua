@@ -16,13 +16,26 @@ function M.get_file_content(lines, conflicts)
         table.insert(ours, lines[line_idx])
         line_idx = line_idx + 1
       end
+      -- Space padding to make sure both sides have the same length.
+      if conflict.ours.len < conflict.theirs.len then
+        for _ = 1, conflict.theirs.len - conflict.ours.len do
+          table.insert(ours, "")
+        end
+      end
       line_idx = line_idx + 1
       for _ = 1, conflict.theirs.len do
         table.insert(theirs, lines[line_idx])
         line_idx = line_idx + 1
       end
+      -- Space padding to make sure both sides have the same length.
+      if conflict.theirs.len < conflict.ours.len then
+        for _ = 1, conflict.ours.len - conflict.theirs.len do
+          table.insert(theirs, "")
+        end
+      end
       conflict_idx = conflict_idx + 1
     else
+      -- Regular lines, add to both.
       table.insert(ours, lines[line_idx])
       table.insert(theirs, lines[line_idx])
     end

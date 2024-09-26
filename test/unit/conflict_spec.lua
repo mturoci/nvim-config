@@ -413,4 +413,58 @@ describe('File content generator #content', function()
     eq(lines, content.ours)
     eq(lines, content.theirs)
   end)
+
+  it('handles variable length conflicts - ours is longer', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      'This is some text from our branch.',
+      'This is some text from our branch.',
+      '=======',
+      'This is some text from their branch.',
+      '>>>>>>> branch-name',
+      'This is some more text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      'This is some text from our branch.',
+      'This is some text from our branch.',
+      'This is some more text.',
+    }, content.ours)
+    eq({
+      'This is some text.',
+      'This is some text from their branch.',
+      '',
+      'This is some more text.',
+    }, content.theirs)
+  end)
+
+  it('handles variable length conflicts - theirs is longer', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      'This is some text from our branch.',
+      '=======',
+      'This is some text from their branch.',
+      'This is some text from their branch.',
+      '>>>>>>> branch-name',
+      'This is some more text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      'This is some text from our branch.',
+      '',
+      'This is some more text.',
+    }, content.ours)
+    eq({
+      'This is some text.',
+      'This is some text from their branch.',
+      'This is some text from their branch.',
+      'This is some more text.',
+    }, content.theirs)
+  end)
 end)
