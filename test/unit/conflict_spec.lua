@@ -90,8 +90,7 @@ This is some more text.
   end)
 
   it('should return empty table when file is empty', function()
-    local conflicts = parse('')
-    eq({}, conflicts)
+    eq({}, parse(''))
   end)
 
   it('should throw error when file does not exist', function()
