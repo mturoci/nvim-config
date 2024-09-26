@@ -1,5 +1,6 @@
 local conflicts = require('config.conflicts')
 local tmp_file = '/tmp/conflicts.txt'
+local eq = assert.are.same
 
 local function parse(content)
   local file = io.open(tmp_file, "w")
@@ -35,7 +36,7 @@ This is some more text.
       ours = { len = 1 },
       theirs = { len = 1 }
     } }
-    assert.is.same(expectedConflict, parsedConflict)
+    eq(expectedConflict, parsedConflict)
   end)
 
   it('should parse multiple conflicts', function()
@@ -54,7 +55,7 @@ This is some additional text from their branch.
 >>>>>>> branch-name
 This is the end of the file.
 ]])
-    assert.is.equal(2, #parsedConflicts)
+    eq(2, #parsedConflicts)
   end)
 
   it('should parse a conflict with multiple lines', function()
@@ -70,13 +71,13 @@ This is some text from our branch.
 >>>>>>> branch-name
 This is some more text.
 ]])
-    local expectedConflict = {{
-        from = 3,
-        to = 9,
-        ours = {len = 2},
-        theirs = {len = 2}
-    }}
-    assert.is.same(expectedConflict, conflicts)
+    local expectedConflict = { {
+      from = 3,
+      to = 9,
+      ours = { len = 2 },
+      theirs = { len = 2 }
+    } }
+    eq(expectedConflict, conflicts)
   end)
 
   it('should return empty table when no conflicts are found', function()
@@ -85,12 +86,12 @@ This is some more text.
   This is some text.
   This is some text.
   ]])
-    assert.is.same({}, expectedConflicts)
+    eq({}, expectedConflicts)
   end)
 
   it('should return empty table when file is empty', function()
     local conflicts = parse('')
-    assert.is.same({}, conflicts)
+    eq({}, conflicts)
   end)
 
   it('should throw error when file does not exist', function()
@@ -121,18 +122,18 @@ This is some additional text from their branch.
 >>>>>>> branch-name
 This is the end of the file.
 ]])
-    local expectedConflict = {{
-        from = 2,
-        to = 8,
-        ours = {len = 2},
-        theirs = {len = 2}
+    local expectedConflict = { {
+      from = 2,
+      to = 8,
+      ours = { len = 2 },
+      theirs = { len = 2 }
     }, {
       from = 10,
       to = 16,
-      ours = {len = 2},
-      theirs = {len = 2}
+      ours = { len = 2 },
+      theirs = { len = 2 }
     } }
-    assert.is.same(expectedConflict, expectedConflicts)
+    eq(expectedConflict, expectedConflicts)
   end)
 
   it('should parse conflict when at the beginning of the file', function()
@@ -144,13 +145,13 @@ This is some text from their branch.
 >>>>>>> branch-name
 This is some more text.
 ]])
-    local expectedConflict = {{
-        from = 1,
-        to = 5,
-        ours = {len = 1},
-        theirs = {len = 1}
-    }}
-    assert.is.same(expectedConflict, conflicts)
+    local expectedConflict = { {
+      from = 1,
+      to = 5,
+      ours = { len = 1 },
+      theirs = { len = 1 }
+    } }
+    eq(expectedConflict, conflicts)
   end)
 
   it('should parse conflict when at the end of the file', function()
@@ -162,13 +163,13 @@ This is some text from our branch.
 This is some text from their branch.
 >>>>>>> branch-name
 ]])
-    local expectedConflict = {{
-        from = 2,
-        to = 6,
-        ours = {len = 1},
-        theirs = {len = 1}
-    }}
-    assert.is.same(expectedConflict, conflicts)
+    local expectedConflict = { {
+      from = 2,
+      to = 6,
+      ours = { len = 1 },
+      theirs = { len = 1 }
+    } }
+    eq(expectedConflict, conflicts)
   end)
 end)
 
@@ -178,13 +179,13 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 10,
-        ours = {len = 4},
-        theirs = {len = 3}
+        ours = { len = 4 },
+        theirs = { len = 3 }
       }
     }
     conflicts.update_lines(conflictsT, 2, 3, 'ours', true)
-    assert.are.same(conflictsT[1].to, 8)
-    assert.are.same(conflictsT[1].ours.len, 2)
+    eq(conflictsT[1].to, 8)
+    eq(conflictsT[1].ours.len, 2)
   end)
 
   it('deletes lines after conflict', function()
@@ -192,14 +193,14 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 5,
-        ours = {len = 1},
-        theirs = {len = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       }
     }
     conflicts.update_lines(conflictsT, 6, 7, 'ours', true)
-    assert.are.same(conflictsT[1].to, 5)
-    assert.are.same(conflictsT[1].ours.len, 1)
-    assert.are.same(conflictsT[1].theirs.len, 1)
+    eq(conflictsT[1].to, 5)
+    eq(conflictsT[1].ours.len, 1)
+    eq(conflictsT[1].theirs.len, 1)
   end)
 
   it('deletes lines before conflict', function()
@@ -207,15 +208,15 @@ describe("Conflict updater", function()
       {
         from = 3,
         to = 9,
-        ours = {len = 2},
-        theirs = {len = 1}
+        ours = { len = 2 },
+        theirs = { len = 1 }
       }
     }
     conflicts.update_lines(conflictsT, 1, 2, 'ours', true)
-    assert.are.same(conflictsT[1].from, 1)
-    assert.are.same(conflictsT[1].to, 7)
-    assert.are.same(conflictsT[1].ours.len, 2)
-    assert.are.same(conflictsT[1].theirs.len, 1)
+    eq(conflictsT[1].from, 1)
+    eq(conflictsT[1].to, 7)
+    eq(conflictsT[1].ours.len, 2)
+    eq(conflictsT[1].theirs.len, 1)
   end)
 
   it('deletes lines on the starting conflict intersection', function()
@@ -223,15 +224,15 @@ describe("Conflict updater", function()
       {
         from = 3,
         to = 10,
-        ours = {len = 3},
-        theirs = {len = 2}
+        ours = { len = 3 },
+        theirs = { len = 2 }
       }
     }
     conflicts.update_lines(conflictsT, 2, 4, 'ours', true)
-    assert.are.same(conflictsT[1].from, 2)
-    assert.are.same(conflictsT[1].to, 8)
-    assert.are.same(conflictsT[1].ours.len, 1)
-    assert.are.same(conflictsT[1].theirs.len, 2)
+    eq(conflictsT[1].from, 2)
+    eq(conflictsT[1].to, 8)
+    eq(conflictsT[1].ours.len, 1)
+    eq(conflictsT[1].theirs.len, 2)
   end)
 
   it('deletes lines between two conflicts', function()
@@ -239,29 +240,29 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 5,
-        ours = {len = 1},
-        theirs = {len = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       },
       {
         from = 8,
         to = 12,
-        ours = {len = 1},
-        theirs = {len = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       },
     }
 
     conflicts.update_lines(conflictsT, 6, 7, 'ours', true)
-    assert.are.same(conflictsT[1], {
+    eq(conflictsT[1], {
       from = 1,
       to = 5,
-      ours = {len = 1},
-      theirs = {len = 1}
+      ours = { len = 1 },
+      theirs = { len = 1 }
     })
-    assert.are.same(conflictsT[2], {
+    eq(conflictsT[2], {
       from = 6,
       to = 10,
-      ours = {len = 1},
-      theirs = {len = 1}
+      ours = { len = 1 },
+      theirs = { len = 1 }
     })
   end)
 
@@ -270,13 +271,13 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 10,
-        ours = {len = 4},
-        theirs = {len = 3}
+        ours = { len = 4 },
+        theirs = { len = 3 }
       }
     }
     conflicts.update_lines(conflictsT, 2, 4, 'ours', false)
-    assert.are.same(13, conflictsT[1].to)
-    assert.are.same(7, conflictsT[1].ours.len)
+    eq(13, conflictsT[1].to)
+    eq(7, conflictsT[1].ours.len)
   end)
 
   it('adds lines correctly after conflict', function()
@@ -284,15 +285,15 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 5,
-        ours = {len  = 1},
-        theirs = {len  = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       }
     }
     conflicts.update_lines(conflictsT, 6, 7, 'ours', false)
-    assert.are.same(conflictsT[1].from, 1)
-    assert.are.same(conflictsT[1].to, 5)
-    assert.are.same(conflictsT[1].ours.len, 1)
-    assert.are.same(conflictsT[1].theirs.len, 1)
+    eq(conflictsT[1].from, 1)
+    eq(conflictsT[1].to, 5)
+    eq(conflictsT[1].ours.len, 1)
+    eq(conflictsT[1].theirs.len, 1)
   end)
 
   it('adds lines correctly before conflict', function()
@@ -300,15 +301,15 @@ describe("Conflict updater", function()
       {
         from = 3,
         to = 10,
-        ours = {len = 2},
-        theirs = {len = 3}
+        ours = { len = 2 },
+        theirs = { len = 3 }
       }
     }
     conflicts.update_lines(conflictsT, 1, 2, 'ours', false)
-    assert.are.same(conflictsT[1].from, 5)
-    assert.are.same(conflictsT[1].to, 12)
-    assert.are.same(conflictsT[1].ours.len, 2)
-    assert.are.same(conflictsT[1].theirs.len, 3)
+    eq(conflictsT[1].from, 5)
+    eq(conflictsT[1].to, 12)
+    eq(conflictsT[1].ours.len, 2)
+    eq(conflictsT[1].theirs.len, 3)
   end)
 
   it('adds lines between two conflicts', function()
@@ -316,29 +317,29 @@ describe("Conflict updater", function()
       {
         from = 1,
         to = 5,
-        ours = {len = 1},
-        theirs = {len = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       },
       {
         from = 8,
         to = 12,
-        ours = {len = 1},
-        theirs = {len = 1}
+        ours = { len = 1 },
+        theirs = { len = 1 }
       },
     }
 
     conflicts.update_lines(conflictsT, 6, 7, 'ours', false)
-    assert.are.same(conflictsT[1], {
+    eq(conflictsT[1], {
       from = 1,
       to = 5,
-      ours = {len = 1},
-      theirs = {len = 1}
+      ours = { len = 1 },
+      theirs = { len = 1 }
     })
-    assert.are.same(conflictsT[2], {
+    eq(conflictsT[2], {
       from = 10,
       to = 14,
-      ours = {len = 1},
-      theirs = {len = 1}
+      ours = { len = 1 },
+      theirs = { len = 1 }
     })
   end)
 end)
