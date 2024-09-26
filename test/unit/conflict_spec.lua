@@ -467,4 +467,50 @@ describe('File content generator #content', function()
       'This is some more text.',
     }, content.theirs)
   end)
+
+  it('handles no theirs conflict', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      'This is some text from our branch.',
+      '=======',
+      '>>>>>>> branch-name',
+      'This is some more text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      'This is some text from our branch.',
+      'This is some more text.',
+    }, content.ours)
+    eq({
+      'This is some text.',
+      '',
+      'This is some more text.',
+    }, content.theirs)
+  end)
+
+  it('handles no ours conflict', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      '=======',
+      'This is some text from their branch.',
+      '>>>>>>> branch-name',
+      'This is some more text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      '',
+      'This is some more text.',
+    }, content.ours)
+    eq({
+      'This is some text.',
+      'This is some text from their branch.',
+      'This is some more text.',
+    }, content.theirs)
+  end)
 end)
