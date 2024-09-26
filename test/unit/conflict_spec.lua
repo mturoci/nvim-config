@@ -362,5 +362,56 @@ describe('File content generator #content', function()
       'This is some text from our branch.',
       'This is some more text.'
     }, content.ours)
+    eq({
+      'This is some text.',
+      'This is some text from their branch.',
+      'This is some more text.'
+    }, content.theirs)
+  end)
+
+  it('creates proper file contents for both sides with multiple conflicts', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      'This is some text from our branch.',
+      '=======',
+      'This is some text from their branch.',
+      '>>>>>>> branch-name',
+      'This is some more text.',
+      '<<<<<<< HEAD',
+      'This is some additional text from our branch.',
+      '=======',
+      'This is some additional text from their branch.',
+      '>>>>>>> branch-name',
+      'This is the end of the file.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      'This is some text from our branch.',
+      'This is some more text.',
+      'This is some additional text from our branch.',
+      'This is the end of the file.'
+    }, content.ours)
+    eq({
+      'This is some text.',
+      'This is some text from their branch.',
+      'This is some more text.',
+      'This is some additional text from their branch.',
+      'This is the end of the file.'
+    }, content.theirs)
+  end)
+
+  it('creates proper file contents when there are no conflicts', function()
+    local lines           = {
+      'This is some text.',
+      'This is some text.',
+      'This is some text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq(lines, content.ours)
+    eq(lines, content.theirs)
   end)
 end)
