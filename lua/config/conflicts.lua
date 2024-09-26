@@ -137,25 +137,24 @@ local function on_conflict()
   })
 end
 
-local on_buf_read = utils.async(function()
-  local nvm_env = os.getenv('NVIM_ENV')
-  if nvm_env == 'test' then return on_conflict() end
-
-  local git_status = utils.spawn("git", { 'diff', '--name-only', '--diff-filter=U' })
-  if git_status == "" then return end
-
-  utils.vim_loop(function()
-    local bufname = api.nvim_buf_get_name(0)
-    for file in git_status:gmatch("[^\r\n]+") do
-      if bufname:match(file .. '$') then return on_conflict() end
-    end
-  end)
-end)
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {
   -- TODO: Read up on augroups and how to properly use them.
   group = vim.api.nvim_create_augroup('conflict_resolve', { clear = true }),
-  callback = on_buf_read,
+  callback = utils.async(function()
+    local nvm_env = os.getenv('NVIM_ENV')
+    if nvm_env == 'test' then return on_conflict() end
+
+    local git_status = utils.spawn("git", { 'diff', '--name-only', '--diff-filter=U' })
+    if git_status == "" then return end
+
+    utils.vim_loop(function()
+      local bufname = api.nvim_buf_get_name(0)
+      for file in git_status:gmatch("[^\r\n]+") do
+        if bufname:match(file .. '$') then return on_conflict() end
+      end
+    end)
+  end)
 })
 
 return M
