@@ -343,3 +343,24 @@ describe("Conflict updater", function()
     })
   end)
 end)
+
+describe('File content generator #content', function()
+  it('creates proper file contents for both sides', function()
+    local lines           = {
+      'This is some text.',
+      '<<<<<<< HEAD',
+      'This is some text from our branch.',
+      '=======',
+      'This is some text from their branch.',
+      '>>>>>>> branch-name',
+      'This is some more text.'
+    }
+    local parsedConflicts = parse(table.concat(lines, '\n'))
+    local content         = conflicts.get_file_content(lines, parsedConflicts)
+    eq({
+      'This is some text.',
+      'This is some text from our branch.',
+      'This is some more text.'
+    }, content.ours)
+  end)
+end)

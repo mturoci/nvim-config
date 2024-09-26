@@ -2,6 +2,36 @@ local M     = {}
 local api   = vim.api
 local utils = require 'config.utils'
 
+function M.get_file_content(lines, conflicts)
+  local ours = {}
+  local theirs = {}
+  local conflict_idx = 1
+  local line_idx = 1
+
+  while line_idx <= #lines do
+    local conflict = conflicts[conflict_idx]
+    if conflict and conflict.from == line_idx then
+      line_idx = line_idx + 1
+      for _ = 1, conflict.ours.len do
+        table.insert(ours, lines[line_idx])
+        line_idx = line_idx + 1
+      end
+      line_idx = line_idx + 1
+      for _ = 1, conflict.theirs.len do
+        table.insert(theirs, lines[line_idx])
+        line_idx = line_idx + 1
+      end
+      conflict_idx = conflict_idx + 1
+    else
+      table.insert(ours, lines[line_idx])
+      table.insert(theirs, lines[line_idx])
+    end
+    line_idx = line_idx + 1
+  end
+
+  return { ours = ours, theirs = theirs }
+end
+
 function M.file_exists(file)
   local f = io.open(file, "rb")
   if f then f:close() end
@@ -66,10 +96,11 @@ local function on_conflict()
 
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
+  local conflicts = M.parse(api.nvim_buf_get_name(bufnr))
+  local file_content = M.get_file_content(lines, conflicts)
 
-  api.nvim_buf_set_lines(buf1, 0, -1, false, { "hello1", "world" })
-  api.nvim_buf_set_lines(buf2, 0, -1, false, { "hello2", "world" })
-
+  api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
+  api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
   api.nvim_buf_set_option(buf1, 'filetype', filetype)
   api.nvim_buf_set_option(buf2, 'filetype', filetype)
 
