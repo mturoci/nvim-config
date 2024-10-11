@@ -168,6 +168,11 @@ function M.go_to_usages()
     -- TODO: Open files in parallel, think about using ast parsing to determine if it's an import.
     local filtered_refs = {}
     local prev_line = ''
+
+    if not result then
+      vim.notify('No references found')
+      return
+    end
     for _, ref in ipairs(result) do
       local file_path = ref.uri
       local lines = vim.fn.readfile(vim.uri_to_fname(file_path))
