@@ -83,4 +83,15 @@ describe('Conflict', function()
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
     eq('Regular text.\nTheirs conflict.\nRegular text.', table.concat(result, '\n'))
   end)
+
+  it('Verifies the number of highlights for left side #run', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_other.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is_not.truthy(mark2Namespace)
+    local marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark1Namespace, 0, -1, {})
+    print(vim.inspect(marks))
+  end)
 end)

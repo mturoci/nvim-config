@@ -2,6 +2,30 @@ local M     = {}
 local api   = vim.api
 local utils = require 'config.utils'
 
+local function highlight(buf, ns, from, to)
+  for i = 0, to do
+    api.nvim_buf_set_extmark(buf, ns, from + i, 0, {
+      line_hl_group = 'Conflict',
+      hl_mode = 'blend',
+      hl_eol = true
+    })
+  end
+end
+
+function M.apply_highlights(left_buf, right_buf, conflicts)
+  for conflict_idx, conflict in ipairs(conflicts) do
+    local from = conflict.from
+    local ours = conflict.ours.len
+    local theirs = conflict.theirs.len
+    local ns = api.nvim_create_namespace('conflict_mark:' .. conflict_idx)
+    local l_buf_padding = math.min(theirs - ours, 0)
+    local r_buf_padding = math.min(ours - theirs, 0)
+
+    highlight(left_buf, ns, from, ours + l_buf_padding)
+    highlight(right_buf, ns, from, theirs + r_buf_padding)
+  end
+end
+
 function M.get_file_content(lines, conflicts)
   local ours = {}
   local theirs = {}
@@ -137,18 +161,8 @@ local function on_conflict()
   -- Open new windows with the buffers
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
-  local ns = api.nvim_create_namespace('diff')
 
-  api.nvim_buf_set_extmark(buf1, ns, 0, 0, {
-    line_hl_group = 'Conflict',
-    hl_mode = 'blend',
-    hl_eol = true
-  })
-  api.nvim_buf_set_extmark(buf2, ns, 1, 0, {
-    line_hl_group = 'Conflict',
-    hl_mode = 'blend',
-    hl_eol = true
-  })
+  M.apply_highlights(buf1, buf2, conflicts)
 
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
     group = vim.api.nvim_create_augroup('buf_closed2', { clear = true }),
