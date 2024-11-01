@@ -3,8 +3,8 @@ local api   = vim.api
 local utils = require 'config.utils'
 
 local function highlight(buf, ns, from, to)
-  for i = 0, to do
-    api.nvim_buf_set_extmark(buf, ns, from + i, 0, {
+  for i = 1, to do
+    api.nvim_buf_set_extmark(buf, ns, from + i - 1, 0, {
       line_hl_group = 'Conflict',
       hl_mode = 'blend',
       hl_eol = true
@@ -14,15 +14,14 @@ end
 
 function M.apply_highlights(left_buf, right_buf, conflicts)
   for conflict_idx, conflict in ipairs(conflicts) do
-    local from = conflict.from
     local ours = conflict.ours.len
     local theirs = conflict.theirs.len
     local ns = api.nvim_create_namespace('conflict_mark:' .. conflict_idx)
-    local l_buf_padding = math.min(theirs - ours, 0)
-    local r_buf_padding = math.min(ours - theirs, 0)
+    local l_buf_padding = math.max(theirs - ours, 0)
+    local r_buf_padding = math.max(ours - theirs, 0)
 
-    highlight(left_buf, ns, from, ours + l_buf_padding)
-    highlight(right_buf, ns, from, theirs + r_buf_padding)
+    highlight(left_buf, ns, conflict.from, ours + l_buf_padding)
+    highlight(right_buf, ns, conflict.from, theirs + r_buf_padding)
   end
 end
 
