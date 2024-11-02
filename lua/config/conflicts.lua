@@ -81,6 +81,7 @@ function M.parse(filepath)
   local conflicts = {}
   local conflict = {}
   local line_number = 0
+  local total_padding = 0
 
   for line in io.lines(filepath) do
     line_number = line_number + 1
@@ -91,7 +92,9 @@ function M.parse(filepath)
     elseif line:match(">>>>>>>") then
       conflict.theirs = { len = line_number - conflict.from - conflict.ours.len - 2 }
       conflict.to = line_number
+      conflict.from_with_padding = conflict.from + total_padding
       table.insert(conflicts, conflict)
+      total_padding = total_padding + math.abs(conflict.ours.len - conflict.theirs.len)
       conflict = nil
     end
   end

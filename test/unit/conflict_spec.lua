@@ -32,6 +32,7 @@ This is some more text.
   ]])
     local expectedConflict = { {
       from = 2,
+      from_with_padding = 2,
       to = 6,
       ours = { len = 1 },
       theirs = { len = 1 }
@@ -73,6 +74,7 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 3,
+      from_with_padding = 3,
       to = 9,
       ours = { len = 2 },
       theirs = { len = 2 }
@@ -123,11 +125,13 @@ This is the end of the file.
 ]])
     local expectedConflict = { {
       from = 2,
+      from_with_padding = 2,
       to = 8,
       ours = { len = 2 },
       theirs = { len = 2 }
     }, {
       from = 10,
+      from_with_padding = 10,
       to = 16,
       ours = { len = 2 },
       theirs = { len = 2 }
@@ -135,8 +139,42 @@ This is the end of the file.
     eq(expectedConflict, expectedConflicts)
   end)
 
+  it('should parse a conflict with multiple lines and multiple conflicts and different conflict lengths', function()
+    local expectedConflicts = parse([[
+This is some text.
+<<<<<<< HEAD
+This is some text from our branch.
+=======
+This is some text from their branch.
+This is some text from our branch.
+>>>>>>> branch-name
+This is some more text.
+<<<<<<< HEAD
+This is some additional text from our branch.
+This is some additional text from our branch.
+=======
+This is some additional text from their branch.
+>>>>>>> branch-name
+This is the end of the file.
+]])
+    local expectedConflict = { {
+      from = 2,
+      from_with_padding = 2,
+      to = 7,
+      ours = { len = 1 },
+      theirs = { len = 2 }
+    }, {
+      from = 9,
+      from_with_padding = 10,
+      to = 14,
+      ours = { len = 2 },
+      theirs = { len = 1 }
+    } }
+    eq(expectedConflict, expectedConflicts)
+  end)
+
   it('should parse conflict when at the beginning of the file', function()
-    local conflicts = parse([[
+    local expected_conflicts = parse([[
 <<<<<<< HEAD
 This is some text from our branch.
 =======
@@ -146,15 +184,16 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 1,
+      from_with_padding = 1,
       to = 5,
       ours = { len = 1 },
       theirs = { len = 1 }
     } }
-    eq(expectedConflict, conflicts)
+    eq(expectedConflict, expected_conflicts)
   end)
 
   it('should parse conflict when at the end of the file', function()
-    local conflicts = parse([[
+    local expected_conflicts = parse([[
 This is some text.
 <<<<<<< HEAD
 This is some text from our branch.
@@ -164,11 +203,12 @@ This is some text from their branch.
 ]])
     local expectedConflict = { {
       from = 2,
+      from_with_padding = 2,
       to = 6,
       ours = { len = 1 },
       theirs = { len = 1 }
     } }
-    eq(expectedConflict, conflicts)
+    eq(expectedConflict, expected_conflicts)
   end)
 end)
 
