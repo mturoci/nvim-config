@@ -32,7 +32,9 @@ This is some more text.
   ]])
     local expectedConflict = { {
       from = 2,
-      to = 6,
+      original_from = 2,
+      original_to = 6,
+      to = 2,
       ours = { len = 1 },
       theirs = { len = 1 }
     } }
@@ -73,7 +75,9 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 3,
-      to = 9,
+      original_from = 3,
+      original_to = 9,
+      to = 4,
       ours = { len = 2 },
       theirs = { len = 2 }
     } }
@@ -123,12 +127,16 @@ This is the end of the file.
 ]])
     local expectedConflict = { {
       from = 2,
-      to = 8,
+      original_from = 2,
+      original_to = 8,
+      to = 3,
       ours = { len = 2 },
       theirs = { len = 2 }
     }, {
-      from = 10,
-      to = 16,
+      from = 5,
+      original_from = 10,
+      original_to = 16,
+      to = 6,
       ours = { len = 2 },
       theirs = { len = 2 }
     } }
@@ -155,12 +163,16 @@ This is the end of the file.
 ]])
     local expectedConflict = { {
       from = 2,
-      to = 7,
+      original_from = 2,
+      original_to = 7,
+      to = 3,
       ours = { len = 1 },
       theirs = { len = 2 }
     }, {
-      from = 9,
-      to = 14,
+      from = 5,
+      original_from = 9,
+      original_to = 14,
+      to = 6,
       ours = { len = 2 },
       theirs = { len = 1 }
     } }
@@ -178,7 +190,9 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 1,
-      to = 5,
+      original_from = 1,
+      original_to = 5,
+      to = 1,
       ours = { len = 1 },
       theirs = { len = 1 }
     } }
@@ -196,7 +210,9 @@ This is some text from their branch.
 ]])
     local expectedConflict = { {
       from = 2,
-      to = 6,
+      original_from = 2,
+      original_to = 6,
+      to = 2,
       ours = { len = 1 },
       theirs = { len = 1 }
     } }

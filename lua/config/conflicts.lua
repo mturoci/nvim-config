@@ -33,7 +33,7 @@ function M.get_file_content(lines, conflicts)
 
   while line_idx <= #lines do
     local conflict = conflicts[conflict_idx]
-    if conflict and conflict.from == line_idx then
+    if conflict and conflict.original_from == line_idx then
       line_idx = line_idx + 1
       for _ = 1, conflict.ours.len do
         table.insert(ours, lines[line_idx])
@@ -74,26 +74,26 @@ function M.file_exists(file)
   return f ~= nil
 end
 
--- TODO: Add origin from and to to every conflict to mark original conflict location for accepting.
 function M.parse(filepath)
   if not M.file_exists(filepath) then error("File does not exist.") end
 
   local conflicts = {}
   local conflict = {}
   local line_number = 0
-  local total_padding = 0
+  local total_removed_lines = 0
 
   for line in io.lines(filepath) do
     line_number = line_number + 1
     if line:match("<<<<<<< HEAD") then
-      conflict = { from = line_number }
+      conflict = { from = line_number - total_removed_lines, original_from = line_number }
     elseif line:match("=======") then
-      conflict.ours = { len = line_number - conflict.from - 1 }
+      conflict.ours = { len = line_number - conflict.from - 1 - total_removed_lines }
     elseif line:match(">>>>>>>") then
-      conflict.theirs = { len = line_number - conflict.from - conflict.ours.len - 2 }
-      conflict.to = line_number
+      conflict.theirs = { len = line_number - conflict.from - conflict.ours.len - 2 - total_removed_lines }
+      total_removed_lines = total_removed_lines + 3 + math.min(conflict.ours.len, conflict.theirs.len)
+      conflict.to = line_number - total_removed_lines -- Is this needed?
+      conflict.original_to = line_number
       table.insert(conflicts, conflict)
-      total_padding = total_padding + math.abs(conflict.ours.len - conflict.theirs.len)
       conflict = nil
     end
   end
