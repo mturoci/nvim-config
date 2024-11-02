@@ -20,8 +20,8 @@ function M.apply_highlights(left_buf, right_buf, conflicts)
     local l_buf_padding = math.max(theirs - ours, 0)
     local r_buf_padding = math.max(ours - theirs, 0)
 
-    highlight(left_buf, ns, conflict.from, ours + l_buf_padding)
-    highlight(right_buf, ns, conflict.from, theirs + r_buf_padding)
+    highlight(left_buf, ns, conflict.from_with_padding, ours + l_buf_padding)
+    highlight(right_buf, ns, conflict.from_with_padding, theirs + r_buf_padding)
   end
 end
 
