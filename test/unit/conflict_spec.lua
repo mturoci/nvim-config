@@ -32,7 +32,6 @@ This is some more text.
   ]])
     local expectedConflict = { {
       from = 2,
-      from_with_padding = 2,
       to = 6,
       ours = { len = 1 },
       theirs = { len = 1 }
@@ -74,7 +73,6 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 3,
-      from_with_padding = 3,
       to = 9,
       ours = { len = 2 },
       theirs = { len = 2 }
@@ -125,13 +123,11 @@ This is the end of the file.
 ]])
     local expectedConflict = { {
       from = 2,
-      from_with_padding = 2,
       to = 8,
       ours = { len = 2 },
       theirs = { len = 2 }
     }, {
       from = 10,
-      from_with_padding = 10,
       to = 16,
       ours = { len = 2 },
       theirs = { len = 2 }
@@ -159,13 +155,11 @@ This is the end of the file.
 ]])
     local expectedConflict = { {
       from = 2,
-      from_with_padding = 2,
       to = 7,
       ours = { len = 1 },
       theirs = { len = 2 }
     }, {
       from = 9,
-      from_with_padding = 10,
       to = 14,
       ours = { len = 2 },
       theirs = { len = 1 }
@@ -184,7 +178,6 @@ This is some more text.
 ]])
     local expectedConflict = { {
       from = 1,
-      from_with_padding = 1,
       to = 5,
       ours = { len = 1 },
       theirs = { len = 1 }
@@ -203,7 +196,6 @@ This is some text from their branch.
 ]])
     local expectedConflict = { {
       from = 2,
-      from_with_padding = 2,
       to = 6,
       ours = { len = 1 },
       theirs = { len = 1 }
