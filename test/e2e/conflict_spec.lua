@@ -160,4 +160,115 @@ describe('Conflict', function()
     eq(1, marks[1][2])
     eq(2, marks[2][2])
   end)
+
+  it('Highlights multiple conflicts properly on rhs', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark1Namespace, 0, -1, {})
+    eq(1, #marks1)
+    eq(1, marks1[1][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark2Namespace, 0, -1, {})
+    eq(1, #marks2)
+    eq(3, marks2[1][2])
+  end)
+
+  it('Highlights multiple conflicts properly on lhs', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
+    eq(1, #marks1)
+    eq(1, marks1[1][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark2Namespace, 0, -1, {})
+    eq(1, #marks2)
+    eq(3, marks2[1][2])
+  end)
+
+
+  it('Highlights multiple conflicts properly on rhs when theirs is longer', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_theirs_longer.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark1Namespace, 0, -1, {})
+    eq(2, #marks1)
+    eq(1, marks1[1][2])
+    eq(2, marks1[2][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark2Namespace, 0, -1, {})
+    eq(2, #marks2)
+    eq(4, marks2[1][2])
+    eq(5, marks2[2][2])
+  end)
+
+  it('Highlights multiple conflicts properly on lhs when theirs is longer', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_theirs_longer.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
+    eq(2, #marks1)
+    eq(1, marks1[1][2])
+    eq(2, marks1[2][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark2Namespace, 0, -1, {})
+    eq(2, #marks2)
+    eq(4, marks2[1][2])
+    eq(5, marks2[2][2])
+  end)
+
+  it('Highlights multiple conflicts properly on rhs when ours is longer', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_ours_longer.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark1Namespace, 0, -1, {})
+    eq(2, #marks1)
+    eq(1, marks1[1][2])
+    eq(2, marks1[2][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark2Namespace, 0, -1, {})
+    eq(2, #marks2)
+    eq(4, marks2[1][2])
+    eq(5, marks2[2][2])
+  end)
+
+  it('Highlights multiple conflicts properly on lhs when ours is longer', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_ours_longer.txt')
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    assert.is.truthy(mark1Namespace)
+    local mark2Namespace = ns['conflict_mark:2']
+    assert.is.truthy(mark2Namespace)
+    local mark3Namespace = ns['conflict_mark:3']
+    assert.is_not.truthy(mark3Namespace)
+    local marks1 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
+    eq(2, #marks1)
+    eq(1, marks1[1][2])
+    eq(2, marks1[2][2])
+    local marks2 = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark2Namespace, 0, -1, {})
+    eq(2, #marks2)
+    eq(4, marks2[1][2])
+    eq(5, marks2[2][2])
+  end)
 end)
