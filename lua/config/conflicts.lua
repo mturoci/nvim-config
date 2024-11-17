@@ -125,6 +125,29 @@ function M.update_lines(conflicts, from, to, side, is_delete)
   end
 end
 
+local function jump_to_next_conflict(conflicts)
+  local curr_line = api.nvim_win_get_cursor(0)[1]
+
+  -- Use binary search to find the nearest conflict.
+  local left = 1
+  local right = #conflicts
+  while left <= right do
+    local mid = math.floor((left + right) / 2)
+    local conflict = conflicts[mid]
+    local next_conflict = conflicts[mid + 1]
+
+    if conflict.from < curr_line and next_conflict and next_conflict.from > curr_line then
+      api.nvim_win_set_cursor(0, { next_conflict.from, 0 })
+      return
+    end
+    if conflict.from < curr_line then
+      left = mid + 1
+    elseif conflict.from > curr_line then
+      right = mid - 1
+    end
+  end
+end
+
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
@@ -180,6 +203,8 @@ local function on_conflict()
     end,
   })
 
+  api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
+  api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
   api.nvim_buf_attach(bufnr, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
       local lines_added = new_end - first_line
@@ -195,7 +220,6 @@ local function on_conflict()
     end
   })
 end
-
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {
   -- TODO: Read up on augroups and how to properly use them.
