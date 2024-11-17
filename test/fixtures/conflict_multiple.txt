@@ -1,3 +1,4 @@
+First line
 <<<<<<< HEAD
 Ours conflict.
 =======

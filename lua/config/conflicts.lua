@@ -128,24 +128,22 @@ end
 local function jump_to_next_conflict(conflicts)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  -- Use binary search to find the nearest conflict.
-  local left = 1
-  local right = #conflicts
-  while left <= right do
-    local mid = math.floor((left + right) / 2)
-    local conflict = conflicts[mid]
-    local next_conflict = conflicts[mid + 1]
+  if curr_line < conflicts[1].from then
+    api.nvim_win_set_cursor(0, { conflicts[1].from, 0 })
+    return
+  end
 
-    if conflict.from < curr_line and next_conflict and next_conflict.from > curr_line then
-      api.nvim_win_set_cursor(0, { next_conflict.from, 0 })
+  local prev_conflict = nil
+  for _, conflict in ipairs(conflicts) do
+    if prev_conflict and curr_line >= prev_conflict.from and curr_line < conflict.from then
+      api.nvim_win_set_cursor(0, { conflict.from, 0 })
       return
     end
-    if conflict.from < curr_line then
-      left = mid + 1
-    elseif conflict.from > curr_line then
-      right = mid - 1
-    end
+    prev_conflict = conflict
   end
+
+  -- If we are at the end of the file with no more conflicts, jump to the first conflict.
+  api.nvim_win_set_cursor(0, { conflicts[1].from, 0 })
 end
 
 local function on_conflict()
