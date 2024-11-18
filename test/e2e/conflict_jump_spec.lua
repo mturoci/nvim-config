@@ -15,12 +15,12 @@ describe('Conflict', function()
   end)
 
 
-  it('Starts with cursor at the first line #run', function()
+  it('Starts with cursor at the first line', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
     eq(1, vim.fn.rpcrequest(nvim, 'nvim_eval', 'line(".")'))
   end)
 
-  it('Jumps to next conflict when [c is hit #run', function()
+  it('Jumps to next conflict when [c is hit', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
     eq(2, vim.fn.rpcrequest(nvim, 'nvim_eval', 'line(".")'))

@@ -128,18 +128,11 @@ end
 local function jump_to_next_conflict(conflicts)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  if curr_line < conflicts[1].from then
-    api.nvim_win_set_cursor(0, { conflicts[1].from, 0 })
-    return
-  end
-
-  local prev_conflict = nil
-  for _, conflict in ipairs(conflicts) do
-    if prev_conflict and curr_line >= prev_conflict.from and curr_line < conflict.from then
-      api.nvim_win_set_cursor(0, { conflict.from, 0 })
+  for idx = 1, #conflicts do
+    if curr_line < conflicts[idx].from then
+      api.nvim_win_set_cursor(0, { conflicts[idx].from, 0 })
       return
     end
-    prev_conflict = conflict
   end
 
   -- If we are at the end of the file with no more conflicts, jump to the first conflict.
