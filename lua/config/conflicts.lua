@@ -128,9 +128,9 @@ end
 local function jump_to_next_conflict(conflicts)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for idx = 1, #conflicts do
-    if curr_line < conflicts[idx].from then
-      api.nvim_win_set_cursor(0, { conflicts[idx].from, 0 })
+  for _, conflict in ipairs(conflicts) do
+    if curr_line < conflict.from then
+      api.nvim_win_set_cursor(0, { conflict.from, 0 })
       return
     end
   end
@@ -138,6 +138,21 @@ local function jump_to_next_conflict(conflicts)
   -- If we are at the end of the file with no more conflicts, jump to the first conflict.
   api.nvim_win_set_cursor(0, { conflicts[1].from, 0 })
 end
+
+local function jump_to_prev_conflict(conflicts)
+  local curr_line = api.nvim_win_get_cursor(0)[1]
+
+  for _, conflict in ipairs(conflicts) do
+    if curr_line > conflict.from then
+      api.nvim_win_set_cursor(0, { conflict.from, 0 })
+      return
+    end
+  end
+
+  -- If we are at the start of the file with no more conflicts, jump to the last conflict.
+  api.nvim_win_set_cursor(0, { conflicts[#conflicts].from, 0 })
+end
+
 
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
@@ -196,6 +211,9 @@ local function on_conflict()
 
   api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
+  api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
+
   api.nvim_buf_attach(bufnr, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
       local lines_added = new_end - first_line
