@@ -193,6 +193,12 @@ local function on_conflict()
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
 
+  -- Sync scroll
+  api.nvim_win_set_option(win1, 'scrollbind', true)
+  api.nvim_win_set_option(win2, 'scrollbind', true)
+  api.nvim_win_set_option(win1, 'cursorbind', true)
+  api.nvim_win_set_option(win2, 'cursorbind', true)
+
   M.apply_highlights(buf1, buf2, conflicts)
 
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
