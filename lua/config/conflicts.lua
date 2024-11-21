@@ -159,9 +159,6 @@ local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
-
-  api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
-
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
   local conflicts = M.parse(api.nvim_buf_get_name(bufnr))
@@ -172,7 +169,6 @@ local function on_conflict()
   api.nvim_buf_set_option(buf1, 'filetype', filetype)
   api.nvim_buf_set_option(buf2, 'filetype', filetype)
 
-  -- Define the window configuration
   local win_config1 = {
     relative = 'editor',
     width = vim.o.columns / 2,
@@ -189,7 +185,6 @@ local function on_conflict()
     row = 0
   }
 
-  -- Open new windows with the buffers
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
 
@@ -202,18 +197,14 @@ local function on_conflict()
   M.apply_highlights(buf1, buf2, conflicts)
 
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
-    group = vim.api.nvim_create_augroup('buf_closed2', { clear = true }),
-    buffer = buf2,
-    callback = function()
-      api.nvim_win_close(win1, true)
-    end,
-  })
-  api.nvim_create_autocmd({ 'BufWinLeave' }, {
     group = vim.api.nvim_create_augroup('buf_closed1', { clear = true }),
     buffer = buf1,
-    callback = function()
-      api.nvim_win_close(win2, true)
-    end,
+    callback = function() api.nvim_win_close(win2, true) end,
+  })
+  api.nvim_create_autocmd({ 'BufWinLeave' }, {
+    group = vim.api.nvim_create_augroup('buf_closed2', { clear = true }),
+    buffer = buf2,
+    callback = function() api.nvim_win_close(win1, true) end,
   })
 
   api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
@@ -221,6 +212,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
 
+  api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
   api.nvim_buf_attach(bufnr, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
       local lines_added = new_end - first_line
