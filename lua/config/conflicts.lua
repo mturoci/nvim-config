@@ -142,7 +142,8 @@ end
 local function jump_to_prev_conflict(conflicts)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for _, conflict in ipairs(conflicts) do
+  for i = #conflicts, 1, -1 do
+    local conflict = conflicts[i]
     if curr_line > conflict.from then
       api.nvim_win_set_cursor(0, { conflict.from, 0 })
       return
