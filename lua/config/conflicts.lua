@@ -154,6 +154,24 @@ local function jump_to_prev_conflict(conflicts)
   api.nvim_win_set_cursor(0, { conflicts[#conflicts].from, 0 })
 end
 
+local function on_accept(conflicts, original_buf_nr, other_buf_nr)
+  local curr_line = api.nvim_win_get_cursor(0)[1]
+  local new_conflicts = {}
+
+  for _, conflict in ipairs(conflicts) do
+    if curr_line >= conflict.from and curr_line <= conflict.to then
+      local curr_buf = api.nvim_get_current_buf()
+      local lines = api.nvim_buf_get_lines(curr_buf, conflict.from - 1, conflict.to, false)
+      api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
+      api.nvim_buf_set_lines(other_buf_nr, conflict.from - 1, conflict.to, false, lines)
+    else
+      table.insert(new_conflicts, conflict)
+    end
+  end
+
+  return new_conflicts
+end
+
 
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
@@ -211,6 +229,33 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
   api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
+    {
+      callback = function()
+        print("Accepting conflict")
+        local new_conflicts = on_accept(conflicts, bufnr, buf2)
+        print(vim.inspect(new_conflicts))
+        if #new_conflicts ~= #conflicts then
+          conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, conflicts)
+        end
+      end
+    })
+  api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',
+    {
+      callback = function()
+        local new_conflicts = on_accept(conflicts, bufnr, buf1)
+        if #new_conflicts ~= #conflicts then
+          conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, conflicts)
+        end
+      end
+    })
+  -- When change outside of conflict - update all buffers.
+  -- When change inside of conflict - update changed buffer and original.
+  -- When accept outside of conflict - ignore.
+  -- When accept inside of conflict - replace the other buffer and the original, remove conflict.
+  -- Undo/Redo - hijack from tmp buffer and proxy to original. Listen for changes, if conflict is brought back, parse it and update both buffers.
 
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
   api.nvim_buf_attach(bufnr, false, {
