@@ -232,9 +232,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
     {
       callback = function()
-        print("Accepting conflict")
         local new_conflicts = on_accept(conflicts, bufnr, buf2)
-        print(vim.inspect(new_conflicts))
         if #new_conflicts ~= #conflicts then
           conflicts = new_conflicts
           M.apply_highlights(buf1, buf2, conflicts)
