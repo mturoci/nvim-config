@@ -251,8 +251,6 @@ local function on_conflict()
     })
   -- When change outside of conflict - update all buffers.
   -- When change inside of conflict - update changed buffer and original.
-  -- When accept outside of conflict - ignore.
-  -- When accept inside of conflict - replace the other buffer and the original, remove conflict.
   -- Undo/Redo - hijack from tmp buffer and proxy to original. Listen for changes, if conflict is brought back, parse it and update both buffers.
 
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
