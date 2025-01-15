@@ -60,7 +60,7 @@ describe('Conflict accept', function()
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Does not do anything if cursor not at conflict #run', function()
+  it('Does not do anything if cursor not at conflict', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')

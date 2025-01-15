@@ -1,6 +1,7 @@
-local M     = {}
-local api   = vim.api
-local utils = require 'config.utils'
+local M            = {}
+local api          = vim.api
+local utils        = require 'config.utils'
+local is_accepting = false
 
 local function highlight(buf, ns, from, to)
   for i = 1, to do
@@ -162,8 +163,10 @@ local function on_accept(conflicts, original_buf_nr, other_buf_nr)
     if curr_line >= conflict.from and curr_line <= conflict.to then
       local curr_buf = api.nvim_get_current_buf()
       local lines = api.nvim_buf_get_lines(curr_buf, conflict.from - 1, conflict.to, false)
+      is_accepting = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
       api.nvim_buf_set_lines(other_buf_nr, conflict.from - 1, conflict.to, false, lines)
+      is_accepting = false
     else
       table.insert(new_conflicts, conflict)
     end
@@ -172,6 +175,38 @@ local function on_accept(conflicts, original_buf_nr, other_buf_nr)
   return new_conflicts
 end
 
+local CONFLICT_MARKER_COUNT = 3
+
+local function get_offset_for_original_buf(from, to, conflicts, in_conflict, conflict_side)
+  local offset = 0
+  for _, conflict in ipairs(conflicts) do
+    if to < conflict.from then break end
+    if from + 1 > conflict.to then
+      if in_conflict then
+        if conflict_side == 'theirs' then
+          -- Do not count the last conflict marker.
+          offset = offset + CONFLICT_MARKER_COUNT - 1
+          offset = offset + conflict.ours.len + conflict.original_from + conflict.theirs.len - from
+        end
+        offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT
+      end
+      break
+    end
+    if conflict_side == 'ours' then
+      offset = offset + CONFLICT_MARKER_COUNT + conflict.ours.len
+    else
+      offset = offset + CONFLICT_MARKER_COUNT + conflict.theirs.len
+    end
+  end
+  return offset
+end
+
+local function is_change_in_conflict(from, to, conflicts)
+  for _, conflict in ipairs(conflicts) do
+    if conflict.from >= from + 1 and conflict.to < to + 1 then return true end
+  end
+  return false
+end
 
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
@@ -254,18 +289,35 @@ local function on_conflict()
   -- Undo/Redo - hijack from tmp buffer and proxy to original. Listen for changes, if conflict is brought back, parse it and update both buffers.
 
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
-  api.nvim_buf_attach(bufnr, false, {
+  api.nvim_buf_attach(buf2, false, {
     on_lines = function(_, _, _, first_line, last_line, new_end)
+      if is_accepting then return end
+
       local lines_added = new_end - first_line
       local lines_removed = last_line - first_line
+      local in_conflict = is_change_in_conflict(first_line, last_line, conflicts)
+      local original_file_offset = get_offset_for_original_buf(first_line, last_line, conflicts, in_conflict, 'ours')
 
-      if lines_added > lines_removed then
-        print("Lines were added from line " .. first_line + 1 .. " to line " .. new_end)
-      elseif lines_added < lines_removed then
-        print("Lines were removed from line " .. first_line + 1 .. " to line " .. last_line)
-      elseif lines_added == lines_removed then
-        print("A single line was changed at line " .. first_line + 1)
-      end
+      vim.schedule(function()
+        local added_lines = api.nvim_buf_get_lines(buf2, first_line, first_line + 1, false)
+
+        if not in_conflict then
+          if lines_added < lines_removed then
+            api.nvim_buf_set_lines(buf1, first_line, first_line + 1, false, {})
+          else
+            api.nvim_buf_set_lines(buf1, first_line, first_line + 1, false, added_lines)
+          end
+        end
+
+        if lines_added > lines_removed then
+          api.nvim_buf_set_lines(bufnr, original_file_offset, original_file_offset, false, added_lines)
+        elseif lines_added < lines_removed then
+          api.nvim_buf_set_lines(bufnr, original_file_offset, original_file_offset, false, {})
+        elseif lines_added == lines_removed then
+          local line = first_line + original_file_offset
+          api.nvim_buf_set_lines(bufnr, line, line + 1, false, added_lines)
+        end
+      end)
     end
   })
 end
