@@ -181,22 +181,23 @@ local function get_offset_for_original_buf(from, to, conflicts, in_conflict, con
   local offset = 0
   for _, conflict in ipairs(conflicts) do
     if to < conflict.from then break end
-    if from + 1 > conflict.to then
-      if in_conflict then
-        if conflict_side == 'theirs' then
-          -- Do not count the last conflict marker.
-          offset = offset + CONFLICT_MARKER_COUNT - 1
-          offset = offset + conflict.ours.len + conflict.original_from + conflict.theirs.len - from
-        end
-        offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT
+
+    if in_conflict then
+      if conflict_side == 'theirs' then
+        -- Do not count the last conflict marker.
+        offset = offset + CONFLICT_MARKER_COUNT - 1
+        offset = offset + conflict.ours.len + conflict.original_from + conflict.theirs.len - from
       end
-      break
+      offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT
     end
+
     if conflict_side == 'ours' then
       offset = offset + CONFLICT_MARKER_COUNT + conflict.ours.len
     else
       offset = offset + CONFLICT_MARKER_COUNT + conflict.theirs.len
     end
+
+    if from + 1 > conflict.to then break end
   end
   return offset
 end
@@ -310,7 +311,8 @@ local function on_conflict()
         end
 
         if lines_added > lines_removed then
-          api.nvim_buf_set_lines(bufnr, original_file_offset, original_file_offset, false, added_lines)
+          local line = first_line + original_file_offset
+          api.nvim_buf_set_lines(bufnr, line, line + lines_added, false, added_lines)
         elseif lines_added < lines_removed then
           api.nvim_buf_set_lines(bufnr, original_file_offset, original_file_offset, false, {})
         elseif lines_added == lines_removed then
