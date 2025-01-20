@@ -182,22 +182,28 @@ local function get_offset_for_original_buf(from, to, conflicts, in_conflict, con
   for _, conflict in ipairs(conflicts) do
     if to < conflict.from then break end
 
-    if in_conflict then
-      if conflict_side == 'theirs' then
-        -- Do not count the last conflict marker.
-        offset = offset + CONFLICT_MARKER_COUNT - 1
-        offset = offset + conflict.ours.len + conflict.original_from + conflict.theirs.len - from
+    if from > conflict.to then -- Outside the conflict.
+      if conflict_side == 'ours' then
+        offset = offset + conflict.theirs.len
+      else
+        offset = offset + conflict.ours.len
       end
-      offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT
+      offset = offset + CONFLICT_MARKER_COUNT
+    else -- Inside the conflict.
+      if conflict_side == 'ours' then
+        local offset_within_conflict = 0
+        if from <= conflict.from then
+          offset_within_conflict = conflict.ours.len - (to - from)
+        end
+        offset = offset + CONFLICT_MARKER_COUNT - 2 + offset_within_conflict
+      else
+        local offset_within_conflict = 0
+        if from <= conflict.from then
+          offset_within_conflict = conflict.theirs.len - (to - from)
+        end
+        offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT - 1 + offset_within_conflict
+      end
     end
-
-    if conflict_side == 'ours' then
-      offset = offset + CONFLICT_MARKER_COUNT + conflict.ours.len
-    else
-      offset = offset + CONFLICT_MARKER_COUNT + conflict.theirs.len
-    end
-
-    if from + 1 > conflict.to then break end
   end
   return offset
 end
@@ -297,7 +303,7 @@ local function on_conflict()
       local lines_added = new_end - first_line
       local lines_removed = last_line - first_line
       local in_conflict = is_change_in_conflict(first_line, last_line, conflicts)
-      local original_file_offset = get_offset_for_original_buf(first_line, last_line, conflicts, in_conflict, 'ours')
+      local original_file_offset = get_offset_for_original_buf(first_line, last_line, conflicts, in_conflict, 'theirs')
 
       vim.schedule(function()
         local added_lines = api.nvim_buf_get_lines(buf2, first_line, first_line + 1, false)

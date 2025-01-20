@@ -68,4 +68,29 @@ Foo bar]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
+
+  it('Changes file contents at the end, inside the conflict in the other buf and the original', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'iFoo bar', 'x', false)
+
+    local expected = 'Regular text.\nFoo barTheirs conflict.\nRegular text.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = 'Regular text.\nOurs conflict.\nRegular text.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+Regular text.
+<<<<<<< HEAD
+Ours conflict.
+=======
+Foo barTheirs conflict.
+>>>>>>> another-branch
+Regular text.]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
 end)
