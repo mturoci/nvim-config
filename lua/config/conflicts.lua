@@ -320,7 +320,7 @@ local function on_conflict()
           local line = first_line + original_file_offset
           api.nvim_buf_set_lines(bufnr, line, line + lines_added, false, added_lines)
         elseif lines_added < lines_removed then
-          api.nvim_buf_set_lines(bufnr, original_file_offset, original_file_offset, false, {})
+          api.nvim_buf_set_lines(bufnr, first_line + original_file_offset, last_line + original_file_offset, false, {})
         elseif lines_added == lines_removed then
           local line = first_line + original_file_offset
           api.nvim_buf_set_lines(bufnr, line, line + 1, false, added_lines)
