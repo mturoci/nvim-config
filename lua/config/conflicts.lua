@@ -325,6 +325,8 @@ local function on_conflict()
           local line = first_line + original_file_offset
           api.nvim_buf_set_lines(bufnr, line, line + 1, false, added_lines)
         end
+
+        -- TODO: Once the changes are applied, reparse conflicts and update the highlights.
       end)
     end
   })
