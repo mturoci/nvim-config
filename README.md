@@ -1,4 +1,4 @@
-# Welcome to my heavily customized config
+# Welcome to my heavily customized Neovim config
 
 ![hero image](hero.png)
 
