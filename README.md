@@ -12,7 +12,7 @@ Extends [Telescope](https://github.com/nvim-telescope/telescope.nvim) with [Delt
 
 ## Fully custom status line
 
-![status line](statusline-botom.png)
+![status line](statusline-bottom.png)
 ![status line](statusline-top.png)
 
 Check the `statusline.lua`. Fully custom, relatively easy to remove and add your own stuff. Styling inspired by [Tmux power](https://github.com/wfxr/tmux-power). Also includes tmux topbar integration.
