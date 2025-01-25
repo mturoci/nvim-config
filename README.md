@@ -24,3 +24,7 @@ The colorscheme is fully custom, can be found in `appearance.lua`.
 ## Interesting bits
 
 Check `utils.lua` for a minimal `async/await` implementation using Lua coroutines. Useful for avoiding callback hell when need to spawn a lot of arbitrary processes.
+
+## Coming up
+
+Working on a merge conflict resolution plugin. Checkout `feat/conflict-resolver` branch if interested (almost fully working, but still highly WIP).
