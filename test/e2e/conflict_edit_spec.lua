@@ -3,7 +3,7 @@ local eq = assert.is.equal
 local original_file_content = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
 
-describe('Conflict editing', function()
+describe('Conflict editing #run', function()
   local nvim
 
   -- TODO: Do not spawn a new process for each test. Closing should be enough.
@@ -114,7 +114,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Removes the row outside the conflict #run', function()
+  it('Removes the row outside the conflict', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
