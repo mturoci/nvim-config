@@ -182,7 +182,7 @@ local function get_offset_for_original_buf(from, to, conflicts, in_conflict, con
   for _, conflict in ipairs(conflicts) do
     if to < conflict.from then break end
 
-    if from > conflict.to then -- Outside the conflict.
+    if from >= conflict.to then -- Outside the conflict.
       if conflict_side == 'ours' then
         offset = offset + conflict.theirs.len
       else
