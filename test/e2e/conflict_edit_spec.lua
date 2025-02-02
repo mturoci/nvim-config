@@ -133,6 +133,7 @@ Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
+
   it('Removes the row inside the conflict', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
