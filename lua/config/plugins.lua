@@ -105,6 +105,7 @@ return {
           graphql = { "prettierd" },
           lua = { "luaformatter" },
           python = { "black" },
+          php = { "blade-formatter" },
         },
         format_on_save = {
           lsp_fallback = true,
