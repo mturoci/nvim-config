@@ -3,6 +3,9 @@ local api          = vim.api
 local utils        = require 'config.utils'
 local is_accepting = false
 
+local _conflicts   = {}
+local function set_conflicts(new_conflicts) _conflicts = new_conflicts end
+
 local function highlight(buf, ns, from, to)
   for i = 1, to do
     api.nvim_buf_set_extmark(buf, ns, from + i - 1, 0, {
@@ -177,7 +180,7 @@ end
 
 local CONFLICT_MARKER_COUNT = 3
 
-local function get_offset_for_original_buf(from, to, conflicts, in_conflict, conflict_side)
+local function get_offset_for_original_buf(from, to, conflicts, conflict_side)
   local offset = 0
   for _, conflict in ipairs(conflicts) do
     if to < conflict.from then break end
@@ -215,14 +218,51 @@ local function is_change_in_conflict(from, to, conflicts)
   return false
 end
 
+local function on_lines_change(buf, other_buf, original_buf)
+  return function(_, _, _, first_line, last_line, new_end)
+    if is_accepting then return end
+
+    local lines_added = new_end - first_line
+    local lines_removed = last_line - first_line
+    local in_conflict = is_change_in_conflict(first_line, last_line, _conflicts)
+    local original_file_offset = get_offset_for_original_buf(first_line, last_line, _conflicts, 'theirs')
+
+    vim.schedule(function()
+      local added_lines = api.nvim_buf_get_lines(buf, first_line, first_line + 1, false)
+
+      if not in_conflict then
+        if lines_added < lines_removed then
+          api.nvim_buf_set_lines(other_buf, first_line, first_line + 1, false, {})
+        else
+          api.nvim_buf_set_lines(other_buf, first_line, first_line + 1, false, added_lines)
+        end
+      end
+
+      if lines_added > lines_removed then
+        local line = first_line + original_file_offset
+        api.nvim_buf_set_lines(original_buf, line, line + lines_added, false, added_lines)
+      elseif lines_added < lines_removed then
+        api.nvim_buf_set_lines(original_buf, first_line + original_file_offset, last_line + original_file_offset, false,
+          {})
+      elseif lines_added == lines_removed then
+        local line = first_line + original_file_offset
+        api.nvim_buf_set_lines(original_buf, line, line + 1, false, added_lines)
+      end
+
+      -- TODO: Once the changes are applied, reparse conflicts and update the highlights.
+    end)
+  end
+end
+
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
-  local conflicts = M.parse(api.nvim_buf_get_name(bufnr))
-  local file_content = M.get_file_content(lines, conflicts)
+
+  set_conflicts(M.parse(api.nvim_buf_get_name(bufnr)))
+  local file_content = M.get_file_content(lines, _conflicts)
 
   api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
   api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
@@ -254,7 +294,7 @@ local function on_conflict()
   api.nvim_win_set_option(win1, 'cursorbind', true)
   api.nvim_win_set_option(win2, 'cursorbind', true)
 
-  M.apply_highlights(buf1, buf2, conflicts)
+  M.apply_highlights(buf1, buf2, _conflicts)
 
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
     group = vim.api.nvim_create_augroup('buf_closed1', { clear = true }),
@@ -267,69 +307,33 @@ local function on_conflict()
     callback = function() api.nvim_win_close(win1, true) end,
   })
 
-  api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
-  api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(conflicts) end })
-  api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
-  api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
+  api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
+  api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
     {
       callback = function()
-        local new_conflicts = on_accept(conflicts, bufnr, buf2)
-        if #new_conflicts ~= #conflicts then
-          conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, conflicts)
+        local new_conflicts = on_accept(_conflicts, bufnr, buf2)
+        if #new_conflicts ~= #_conflicts then
+          _conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, _conflicts)
         end
       end
     })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',
     {
       callback = function()
-        local new_conflicts = on_accept(conflicts, bufnr, buf1)
-        if #new_conflicts ~= #conflicts then
-          conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, conflicts)
+        local new_conflicts = on_accept(_conflicts, bufnr, buf1)
+        if #new_conflicts ~= #_conflicts then
+          _conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, _conflicts)
         end
       end
     })
-  -- When change outside of conflict - update all buffers.
-  -- When change inside of conflict - update changed buffer and original.
-  -- Undo/Redo - hijack from tmp buffer and proxy to original. Listen for changes, if conflict is brought back, parse it and update both buffers.
 
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
-  api.nvim_buf_attach(buf2, false, {
-    on_lines = function(_, _, _, first_line, last_line, new_end)
-      if is_accepting then return end
-
-      local lines_added = new_end - first_line
-      local lines_removed = last_line - first_line
-      local in_conflict = is_change_in_conflict(first_line, last_line, conflicts)
-      local original_file_offset = get_offset_for_original_buf(first_line, last_line, conflicts, in_conflict, 'theirs')
-
-      vim.schedule(function()
-        local added_lines = api.nvim_buf_get_lines(buf2, first_line, first_line + 1, false)
-
-        if not in_conflict then
-          if lines_added < lines_removed then
-            api.nvim_buf_set_lines(buf1, first_line, first_line + 1, false, {})
-          else
-            api.nvim_buf_set_lines(buf1, first_line, first_line + 1, false, added_lines)
-          end
-        end
-
-        if lines_added > lines_removed then
-          local line = first_line + original_file_offset
-          api.nvim_buf_set_lines(bufnr, line, line + lines_added, false, added_lines)
-        elseif lines_added < lines_removed then
-          api.nvim_buf_set_lines(bufnr, first_line + original_file_offset, last_line + original_file_offset, false, {})
-        elseif lines_added == lines_removed then
-          local line = first_line + original_file_offset
-          api.nvim_buf_set_lines(bufnr, line, line + 1, false, added_lines)
-        end
-
-        -- TODO: Once the changes are applied, reparse conflicts and update the highlights.
-      end)
-    end
-  })
+  api.nvim_buf_attach(buf2, false, { on_lines = on_lines_change(buf2, buf1, bufnr) })
 end
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {

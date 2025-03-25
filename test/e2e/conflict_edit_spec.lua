@@ -94,7 +94,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Removes the row at the end #run', function()
+  it('Removes the row at the end', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal G')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
@@ -170,6 +170,17 @@ Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Brings back removed row outside conflict on undo #run', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
+    print('about to undo')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
+
+    local expected = 'Theirs conflict.\nRegular text.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 end)
