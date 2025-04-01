@@ -8,7 +8,7 @@ local function set_conflicts(new_conflicts) _conflicts = new_conflicts end
 
 local function highlight(buf, ns, from, to)
   for i = 1, to do
-    api.nvim_buf_set_extmark(buf, ns, from + i - 1, 0, {
+    api.nvim_buf_set_extmark(buf, ns, from + i - 2, 0, {
       line_hl_group = 'Conflict',
       hl_mode = 'blend',
       hl_eol = true
