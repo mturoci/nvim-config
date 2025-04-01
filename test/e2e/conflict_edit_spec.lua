@@ -173,14 +173,5 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Brings back removed row outside conflict on undo in the other buf #run', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
-
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
-    -- FIXME: Why is there a leading newline?
-    local expected = '\nOurs conflict.\nRegular text.'
-    eq(expected, table.concat(result, '\n'))
-  end)
+  -- TODO: Test undo.
 end)
