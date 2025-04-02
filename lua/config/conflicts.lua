@@ -1,9 +1,10 @@
-local M          = {}
-local api        = vim.api
-local utils      = require 'config.utils'
-local is_locked  = false
+local M             = {}
+local api           = vim.api
+local utils         = require 'config.utils'
+local is_locked     = false
+local NO_FOCUS_FLAG = "conflicts_no_focus"
 
-local _conflicts = {}
+local _conflicts    = {}
 local function set_conflicts(new_conflicts) _conflicts = new_conflicts end
 
 local function highlight(buf, ns, from, to)
@@ -262,6 +263,7 @@ local function on_conflict()
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
+  local winnr = api.nvim_get_current_win()
 
   set_conflicts(M.parse(api.nvim_buf_get_name(bufnr)))
   local file_content = M.get_file_content(lines, _conflicts)
@@ -270,6 +272,7 @@ local function on_conflict()
   api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
   api.nvim_buf_set_option(buf1, 'filetype', filetype)
   api.nvim_buf_set_option(buf2, 'filetype', filetype)
+  api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, true)
 
   local win_config1 = {
     relative = 'editor',
@@ -298,15 +301,31 @@ local function on_conflict()
 
   M.apply_highlights(buf1, buf2, _conflicts)
 
+  local buf_enter_autocmd_id = api.nvim_create_autocmd("BufEnter", {
+    callback = function()
+      local ok, skip = pcall(api.nvim_win_get_var, 0, NO_FOCUS_FLAG)
+      if ok and skip then
+        vim.cmd("wincmd w") -- Skip this window and move to the next
+      end
+    end,
+  })
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
     group = vim.api.nvim_create_augroup('buf_closed1', { clear = true }),
     buffer = buf1,
-    callback = function() api.nvim_win_close(win2, true) end,
+    callback = function()
+      api.nvim_win_close(win2, true)
+      api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, false)
+      api.nvim_del_autocmd(buf_enter_autocmd_id)
+    end,
   })
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
     group = vim.api.nvim_create_augroup('buf_closed2', { clear = true }),
     buffer = buf2,
-    callback = function() api.nvim_win_close(win1, true) end,
+    callback = function()
+      api.nvim_win_close(win1, true)
+      api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, false)
+      api.nvim_del_autocmd(buf_enter_autocmd_id)
+    end,
   })
 
   api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
