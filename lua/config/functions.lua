@@ -259,7 +259,8 @@ function M.go_to_usages()
 end
 
 function M.commit()
-  local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", "")
+  -- Get last commit and remove GH issue number postfix if present: "Fixes #1234" -> "Fixes"
+  local last_commit = vim.fn.system('git log -1 --pretty=%B'):gsub("\n", ""):gsub(' #.*', '')
   local displayer = entry_display.create {
     separator = "",
     items = {
