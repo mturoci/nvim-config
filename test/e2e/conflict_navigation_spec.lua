@@ -15,7 +15,7 @@ describe('Conflict navigation', function()
   end)
 
 
-  it('Do not jump to original buffer when using CTRL-W w #run', function()
+  it('Do not jump to original buffer when using CTRL-W w', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_other.txt')
     eq(3, vim.fn.rpcrequest(nvim, 'nvim_eval', 'bufnr("%")'))
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')

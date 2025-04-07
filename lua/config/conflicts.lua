@@ -5,7 +5,6 @@ local is_locked     = false
 local NO_FOCUS_FLAG = "conflicts_no_focus"
 
 local _conflicts    = {}
-local function set_conflicts(new_conflicts) _conflicts = new_conflicts end
 
 local function highlight(buf, ns, from, to)
   for i = 1, to do
@@ -18,6 +17,10 @@ local function highlight(buf, ns, from, to)
 end
 
 function M.apply_highlights(left_buf, right_buf, conflicts)
+  -- Remove previous highlights
+  api.nvim_buf_clear_namespace(left_buf, -1, 0, -1)
+  api.nvim_buf_clear_namespace(right_buf, -1, 0, -1)
+
   for conflict_idx, conflict in ipairs(conflicts) do
     local ours = conflict.ours.len
     local theirs = conflict.theirs.len
@@ -252,7 +255,6 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       end
 
       is_locked = false
-      -- TODO: Once the changes are applied, reparse conflicts and update the highlights.
     end)
   end
 end
@@ -265,7 +267,7 @@ local function on_conflict()
   local buf2 = api.nvim_create_buf(false, true)
   local winnr = api.nvim_get_current_win()
 
-  set_conflicts(M.parse(api.nvim_buf_get_name(bufnr)))
+  _conflicts = M.parse(api.nvim_buf_get_name(bufnr))
   local file_content = M.get_file_content(lines, _conflicts)
 
   api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
