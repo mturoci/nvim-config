@@ -254,7 +254,10 @@ local function on_lines_change(buf, other_buf, original_buf, side)
         api.nvim_buf_set_lines(original_buf, line, line + 1, false, added_lines)
       end
 
-      is_locked = false
+      api.nvim_buf_call(original_buf, function()
+        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+        is_locked = false
+      end)
     end)
   end
 end
@@ -273,6 +276,7 @@ local function undo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
     is_locked = true
     api.nvim_cmd({ cmd = "undo", args = {} }, {})
+    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
     -- PERF: Relatively expensive on every undo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
     is_locked = false
@@ -283,7 +287,8 @@ local function redo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
     is_locked = true
     api.nvim_cmd({ cmd = "redo", args = {} }, {})
-    -- PERF: Relatively expensive on every undo but good enough for now.
+    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+    -- PERF: Relatively expensive on every redo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
     is_locked = false
   end)
