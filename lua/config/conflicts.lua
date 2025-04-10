@@ -259,6 +259,32 @@ local function on_lines_change(buf, other_buf, original_buf, side)
   end
 end
 
+local function refresh_buffers_content(original_buf, buf1, buf2)
+  _conflicts = M.parse(api.nvim_buf_get_name(original_buf))
+  local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+  local file_content = M.get_file_content(lines, _conflicts)
+
+  api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
+  api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
+
+  M.apply_highlights(buf1, buf2, _conflicts)
+end
+local function undo(original_buf, buf1, buf2)
+  api.nvim_buf_call(original_buf, function()
+    api.nvim_cmd({ cmd = "undo", args = {} }, {})
+    -- PERF: Relatively expensive on every undo but good enough for now.
+    refresh_buffers_content(original_buf, buf1, buf2)
+  end)
+end
+
+local function redo(original_buf, buf1, buf2)
+  api.nvim_buf_call(original_buf, function()
+    api.nvim_cmd({ cmd = "redo", args = {} }, {})
+    -- PERF: Relatively expensive on every undo but good enough for now.
+    refresh_buffers_content(original_buf, buf1, buf2)
+  end)
+end
+
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
@@ -329,6 +355,11 @@ local function on_conflict()
       api.nvim_del_autocmd(buf_enter_autocmd_id)
     end,
   })
+
+  api.nvim_buf_set_keymap(buf1, 'n', 'u', '', { callback = function() undo(bufnr, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<C-r>', '', { callback = function() redo(bufnr, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf2, 'n', 'u', '', { callback = function() undo(bufnr, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf2, 'n', '<C-r>', '', { callback = function() redo(bufnr, buf1, buf2) end })
 
   api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
