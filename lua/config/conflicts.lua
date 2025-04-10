@@ -271,17 +271,21 @@ local function refresh_buffers_content(original_buf, buf1, buf2)
 end
 local function undo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
+    is_locked = true
     api.nvim_cmd({ cmd = "undo", args = {} }, {})
     -- PERF: Relatively expensive on every undo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
+    is_locked = false
   end)
 end
 
 local function redo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
+    is_locked = true
     api.nvim_cmd({ cmd = "redo", args = {} }, {})
     -- PERF: Relatively expensive on every undo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
+    is_locked = false
   end)
 end
 

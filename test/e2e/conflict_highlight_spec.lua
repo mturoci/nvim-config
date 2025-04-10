@@ -202,7 +202,7 @@ describe('Conflict highlight', function()
     eq(4, marks2[2][2])
   end)
 
-  it('Removes highlight after accepting conflict #run', function()
+  it('Removes highlight after accepting conflict', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     -- Expect there to be a single highlight.
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
