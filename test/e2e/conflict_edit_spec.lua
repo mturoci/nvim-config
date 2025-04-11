@@ -239,7 +239,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Redoes change outside of conflict #run', function()
+  it('Redoes change outside of conflict', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
@@ -258,70 +258,64 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  --   it('Redoes change inside of conflict #run', function()
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
-  --
-  --     local expected = "Regular text.\nRegular text."
-  --     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
-  --     expected = [[
-  -- Regular text.
-  -- Theirs conflict.
-  -- Regular text.]]
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal <C-R>')
-  --     expected = "Regular text.\nRegular text."
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --   end)
-  --
-  --   it('Redoes change outside of conflict left side #run', function()
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
-  --     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
-  --
-  --     local expected = 'Ours conflict.\nRegular text.'
-  --     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
-  --     expected = 'Regular text.\nOurs conflict.\nRegular text.'
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal <C-R>')
-  --     expected = 'Ours conflict.\nRegular text.'
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --   end)
-  --
-  --   it('Redoes change inside of conflict left side #run', function()
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
-  --     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
-  --
-  --     local expected = "Regular text.\nRegular text."
-  --     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
-  --     expected = [[
-  -- Regular text.
-  -- Ours conflict.
-  -- Regular text.]]
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal <C-R>')
-  --     expected = "Regular text.\nRegular text."
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --   end)
+  it('Redoes change inside of conflict', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'A Foo bar.', 'x', false)
+
+    local expected = "Regular text.\nTheirs conflict. Foo bar.\nRegular text."
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
+    expected = "Regular text.\nTheirs conflict.\nRegular text."
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-r>')
+    expected = "Regular text.\nTheirs conflict. Foo bar.\nRegular text."
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Redoes change outside of conflict left side', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
+
+    local expected = 'Ours conflict.\nRegular text.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
+    expected = 'Regular text.\nOurs conflict.\nRegular text.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-r>')
+    expected = 'Ours conflict.\nRegular text.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Redoes change inside of conflict left side #run', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'A Foo bar.', 'x', false)
+
+    local expected = "Regular text.\nOurs conflict. Foo bar.\nRegular text."
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
+    expected = "Regular text.\nOurs conflict.\nRegular text."
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-r>')
+    expected = "Regular text.\nOurs conflict. Foo bar.\nRegular text."
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
 end)
