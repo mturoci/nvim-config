@@ -174,14 +174,15 @@ local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
 
   for _, conflict in ipairs(conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
-      local ours_buf_lines = api.nvim_buf_get_lines(ours_buf, conflict.from - 1, conflict.to, false)
-      local theirs_buf_lines = api.nvim_buf_get_lines(theirs_buf, conflict.from - 1, conflict.to, false)
+      local start = conflict.from - 1
+      local ours_buf_lines = api.nvim_buf_get_lines(ours_buf, start, start + conflict.ours.len, false)
+      local theirs_buf_lines = api.nvim_buf_get_lines(theirs_buf, start, start + conflict.theirs.len, false)
       local all_lines = join_tables(ours_buf_lines, theirs_buf_lines)
 
       is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
-      api.nvim_buf_set_lines(ours_buf, conflict.from - 1, conflict.to, false, all_lines)
-      api.nvim_buf_set_lines(theirs_buf, conflict.from - 1, conflict.to, false, all_lines)
+      api.nvim_buf_set_lines(ours_buf, start, conflict.to, false, all_lines)
+      api.nvim_buf_set_lines(theirs_buf, start, conflict.to, false, all_lines)
       is_locked = false
     else
       table.insert(new_conflicts, conflict)
