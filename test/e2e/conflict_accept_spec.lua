@@ -116,4 +116,22 @@ describe('Conflict accept', function()
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
     eq('Regular text.\nOurs conflict.\nTheirs conflict.\nRegular text.', table.concat(result, '\n'))
   end)
+
+  it('Does not do anything if accepts both but cursor not at conflict', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+
+    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
+      true)
+
+    -- Add sleep to wait for the command to finish.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq('Regular text.\nOurs conflict.\nRegular text.', table.concat(result, '\n'))
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(table.concat(original_file_content, '\n'), table.concat(result, '\n'))
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    eq('Regular text.\nTheirs conflict.\nRegular text.', table.concat(result, '\n'))
+  end)
 end)
