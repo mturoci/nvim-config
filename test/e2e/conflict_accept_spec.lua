@@ -19,7 +19,7 @@ describe('Conflict accept', function()
   end)
 
 
-  it('Accepts right conflict and updates all buffers properly', function()
+  it('Accepts theirs conflict and updates all buffers properly', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
@@ -39,7 +39,7 @@ describe('Conflict accept', function()
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Accepts left conflict and updates all buffers properly', function()
+  it('Accepts ours conflict and updates all buffers properly', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
