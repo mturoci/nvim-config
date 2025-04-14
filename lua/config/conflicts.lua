@@ -5,6 +5,12 @@ local is_locked     = false
 local NO_FOCUS_FLAG = "conflicts_no_focus"
 
 local _conflicts    = {}
+local function join_tables(t1, t2)
+  local t = {}
+  for _, v in ipairs(t1) do table.insert(t, v) end
+  for _, v in ipairs(t2) do table.insert(t, v) end
+  return t
+end
 
 local function highlight(buf, ns, from, to)
   for i = 1, to do
@@ -170,7 +176,7 @@ local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
     if curr_line >= conflict.from and curr_line <= conflict.to then
       local ours_buf_lines = api.nvim_buf_get_lines(ours_buf, conflict.from - 1, conflict.to, false)
       local theirs_buf_lines = api.nvim_buf_get_lines(theirs_buf, conflict.from - 1, conflict.to, false)
-      local all_lines = { table.unpack(ours_buf_lines), table.unpack(theirs_buf_lines) }
+      local all_lines = join_tables(ours_buf_lines, theirs_buf_lines)
 
       is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
