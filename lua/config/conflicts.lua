@@ -192,17 +192,20 @@ local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
   return new_conflicts
 end
 
-local function on_accept(conflicts, original_buf_nr, other_buf_nr)
+local function on_accept(conflicts, original_buf_nr, other_buf_nr, side)
   local curr_line = api.nvim_win_get_cursor(0)[1]
   local new_conflicts = {}
 
   for _, conflict in ipairs(conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
       local curr_buf = api.nvim_get_current_buf()
-      local lines = api.nvim_buf_get_lines(curr_buf, conflict.from - 1, conflict.to, false)
+      local start = conflict.from - 1
+      local len = conflict[side].len
+      local lines = api.nvim_buf_get_lines(curr_buf, start, start + len, false)
       is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
-      api.nvim_buf_set_lines(other_buf_nr, conflict.from - 1, conflict.to, false, lines)
+      api.nvim_buf_set_lines(other_buf_nr, start, conflict.to, false, lines)
+      api.nvim_buf_set_lines(curr_buf, start, conflict.to, false, lines)
       is_locked = false
     else
       table.insert(new_conflicts, conflict)
@@ -427,7 +430,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
     {
       callback = function()
-        local new_conflicts = on_accept(_conflicts, bufnr, buf2)
+        local new_conflicts = on_accept(_conflicts, bufnr, buf2, "ours")
         if #new_conflicts ~= #_conflicts then
           _conflicts = new_conflicts
           M.apply_highlights(buf1, buf2, _conflicts)
@@ -437,7 +440,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',
     {
       callback = function()
-        local new_conflicts = on_accept(_conflicts, bufnr, buf1)
+        local new_conflicts = on_accept(_conflicts, bufnr, buf1, "theirs")
         if #new_conflicts ~= #_conflicts then
           _conflicts = new_conflicts
           M.apply_highlights(buf1, buf2, _conflicts)
