@@ -298,7 +298,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Redoes change inside of conflict left side #run', function()
+  it('Redoes change inside of conflict left side', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
