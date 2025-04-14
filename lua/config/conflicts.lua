@@ -162,6 +162,29 @@ local function jump_to_prev_conflict(conflicts)
   api.nvim_win_set_cursor(0, { conflicts[#conflicts].from, 0 })
 end
 
+local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
+  local curr_line = api.nvim_win_get_cursor(0)[1]
+  local new_conflicts = {}
+
+  for _, conflict in ipairs(conflicts) do
+    if curr_line >= conflict.from and curr_line <= conflict.to then
+      local ours_buf_lines = api.nvim_buf_get_lines(ours_buf, conflict.from - 1, conflict.to, false)
+      local theirs_buf_lines = api.nvim_buf_get_lines(theirs_buf, conflict.from - 1, conflict.to, false)
+      local all_lines = { table.unpack(ours_buf_lines), table.unpack(theirs_buf_lines) }
+
+      is_locked = true
+      api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
+      api.nvim_buf_set_lines(ours_buf, conflict.from - 1, conflict.to, false, all_lines)
+      api.nvim_buf_set_lines(theirs_buf, conflict.from - 1, conflict.to, false, all_lines)
+      is_locked = false
+    else
+      table.insert(new_conflicts, conflict)
+    end
+  end
+
+  return new_conflicts
+end
+
 local function on_accept(conflicts, original_buf_nr, other_buf_nr)
   local curr_line = api.nvim_win_get_cursor(0)[1]
   local new_conflicts = {}
@@ -374,6 +397,26 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '',
+    {
+      callback = function()
+        local new_conflicts = on_accept_both(_conflicts, bufnr, buf1, buf2)
+        if #new_conflicts ~= #_conflicts then
+          _conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, _conflicts)
+        end
+      end
+    })
+  api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '',
+    {
+      callback = function()
+        local new_conflicts = on_accept_both(_conflicts, bufnr, buf1, buf2)
+        if #new_conflicts ~= #_conflicts then
+          _conflicts = new_conflicts
+          M.apply_highlights(buf1, buf2, _conflicts)
+        end
+      end
+    })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
     {
       callback = function()
