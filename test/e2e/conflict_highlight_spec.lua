@@ -224,4 +224,27 @@ describe('Conflict highlight', function()
     eq(0, #left_marks)
     eq(0, #right_marks)
   end)
+
+  it('Removes highlight after accepting both conflicts', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    -- Expect there to be a single highlight.
+    local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
+    local mark1Namespace = ns['conflict_mark:1']
+    local marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 0, mark1Namespace, 0, -1, {})
+    eq(1, #marks)
+
+    vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
+
+    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
+      true)
+
+    -- Add sleep to wait for the command to finish.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+
+    local left_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
+    local right_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 3, mark1Namespace, 0, -1, {})
+    eq(0, #left_marks)
+    eq(0, #right_marks)
+  end)
 end)
