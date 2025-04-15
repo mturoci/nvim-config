@@ -1,10 +1,12 @@
-local M             = {}
-local api           = vim.api
-local utils         = require 'config.utils'
-local is_locked     = false
-local NO_FOCUS_FLAG = "conflicts_no_focus"
+local M                     = {}
+local api                   = vim.api
+local utils                 = require 'config.utils'
+local NO_FOCUS_FLAG         = "conflicts_no_focus"
+local CONFLICT_MARKER_COUNT = 3
 
-local _conflicts    = {}
+local _conflicts            = {}
+local _is_locked            = false
+
 local function join_tables(t1, t2)
   local t = {}
   for _, v in ipairs(t1) do table.insert(t, v) end
@@ -152,12 +154,12 @@ end
 
 local function undo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
-    is_locked = true
+    _is_locked = true
     api.nvim_cmd({ cmd = "undo", args = {} }, {})
     api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
     -- PERF: Relatively expensive on every undo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
-    is_locked = false
+    _is_locked = false
   end)
 end
 
@@ -202,13 +204,13 @@ local function on_accept_both(original_buf_nr, ours_buf, theirs_buf)
       local theirs_buf_lines = api.nvim_buf_get_lines(theirs_buf, start, start + conflict.theirs.len, false)
       local all_lines = join_tables(ours_buf_lines, theirs_buf_lines)
 
-      is_locked = true
+      _is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
       api.nvim_buf_call(original_buf_nr, function()
         api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
         -- PERF: Relatively expensive on every accept but good enough for now.
         refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
-        is_locked = false
+        _is_locked = false
       end)
     end
   end
@@ -224,19 +226,17 @@ local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
       local len = conflict[side].len
       local lines = api.nvim_buf_get_lines(curr_buf, start, start + len, false)
 
-      is_locked = true
+      _is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
       api.nvim_buf_call(original_buf_nr, function()
         api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
         -- PERF: Relatively expensive on every accept but good enough for now.
         refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
-        is_locked = false
+        _is_locked = false
       end)
     end
   end
 end
-
-local CONFLICT_MARKER_COUNT = 3
 
 local function get_offset_for_original_buf(from, to, conflicts, conflict_side)
   local offset = 0
@@ -278,7 +278,7 @@ end
 
 local function on_lines_change(buf, other_buf, original_buf, side)
   return function(_, _, _, first_line, last_line, new_end)
-    if is_locked then return end
+    if _is_locked then return end
 
     vim.schedule(function()
       local lines_added = new_end - first_line
@@ -287,7 +287,7 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       local original_file_offset = get_offset_for_original_buf(first_line, last_line, _conflicts, side)
 
       local added_lines = api.nvim_buf_get_lines(buf, first_line, new_end, false)
-      is_locked = true
+      _is_locked = true
 
       if not in_conflict then
         if lines_added < lines_removed then
@@ -310,7 +310,7 @@ local function on_lines_change(buf, other_buf, original_buf, side)
 
       api.nvim_buf_call(original_buf, function()
         api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-        is_locked = false
+        _is_locked = false
       end)
     end)
   end
@@ -319,12 +319,12 @@ end
 
 local function redo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
-    is_locked = true
+    _is_locked = true
     api.nvim_cmd({ cmd = "redo", args = {} }, {})
     api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
     -- PERF: Relatively expensive on every redo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
-    is_locked = false
+    _is_locked = false
   end)
 end
 
