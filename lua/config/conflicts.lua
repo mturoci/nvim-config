@@ -378,7 +378,6 @@ local function main()
 end
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {
-  -- TODO: Read up on augroups and how to properly use them.
   group = vim.api.nvim_create_augroup('conflict_resolve', { clear = true }),
   callback = utils.async(function()
     local nvim_env = os.getenv('NVIM_ENV')
