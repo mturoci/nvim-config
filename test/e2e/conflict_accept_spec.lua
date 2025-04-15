@@ -1,7 +1,11 @@
 local jobopts = { rpc = true, width = 80, height = 24, env = { NVIM_ENV = 'test' } }
 local eq = assert.is.equal
 local original_file_content = {}
+local original_file_content_ours_longer = {}
+local original_file_content_theirs_longer = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
+local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
+local fixture_file_theirs_longer = './test/fixtures/conflict_theirs_longer.txt'
 
 describe('Conflict accept', function()
   local nvim
@@ -10,12 +14,16 @@ describe('Conflict accept', function()
   before_each(function()
     nvim = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, jobopts)
     original_file_content = vim.fn.readfile(fixture_file)
+    original_file_content_ours_longer = vim.fn.readfile(fixture_file_ours_longer)
+    original_file_content_theirs_longer = vim.fn.readfile(fixture_file_theirs_longer)
   end)
 
   after_each(function()
     print(vim.fn.rpcrequest(nvim, 'nvim_eval', "execute('messages')"))
     vim.fn.jobstop(nvim)
     vim.fn.writefile(original_file_content, fixture_file)
+    vim.fn.writefile(original_file_content_ours_longer, fixture_file_ours_longer)
+    vim.fn.writefile(original_file_content_theirs_longer, fixture_file_theirs_longer)
   end)
 
 
@@ -120,7 +128,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts ours conflict and updates all buffers properly - theirs longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_theirs_longer.txt')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_theirs_longer)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')

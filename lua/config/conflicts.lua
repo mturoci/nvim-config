@@ -409,15 +409,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '',
     { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '',
-    {
-      callback = function()
-        local new_conflicts = on_accept_both(_conflicts, bufnr, buf1, buf2)
-        if #new_conflicts ~= #_conflicts then
-          _conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, _conflicts)
-        end
-      end
-    })
+    { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
     { callback = function() on_accept(_conflicts, bufnr, buf1, buf2, "ours") end })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',

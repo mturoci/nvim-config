@@ -5,7 +5,7 @@ test-e2e-tagged:
 		busted --run e2e --tags=run
 
 test-unit-tagged:
-		busted --run unit --tags=run
+		busted --run unit --tags=run --no-keep-going
 
 test-unit:
 		busted --run unit
