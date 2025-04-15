@@ -20,6 +20,12 @@ describe('Conflict', function()
     eq(3, bufCount)
   end)
 
+  it('Remains within the original buffer if no conflicts found in a file', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/no_conflict.txt')
+    local bufCount = vim.fn.rpcrequest(nvim, 'nvim_eval', 'len(nvim_list_bufs())')
+    eq(1, bufCount)
+  end)
+
   it('Sets a buffer file type', function()
     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict.txt')
     local result = vim.fn.rpcrequest(nvim, 'nvim_eval', '&filetype')

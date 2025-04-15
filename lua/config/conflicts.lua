@@ -328,13 +328,15 @@ end
 
 local function on_conflict()
   local bufnr = api.nvim_get_current_buf()
+  _conflicts = M.parse(api.nvim_buf_get_name(bufnr))
+  if #_conflicts == 0 then return end
+
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
   local winnr = api.nvim_get_current_win()
 
-  _conflicts = M.parse(api.nvim_buf_get_name(bufnr))
   local file_content = M.get_file_content(lines, _conflicts)
 
   api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
