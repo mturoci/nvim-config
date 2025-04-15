@@ -139,6 +139,17 @@ local function undo(original_buf, buf1, buf2)
   end)
 end
 
+local function redo(original_buf, buf1, buf2)
+  api.nvim_buf_call(original_buf, function()
+    _is_locked = true
+    api.nvim_cmd({ cmd = "redo", args = {} }, {})
+    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+    -- PERF: Relatively expensive on every redo but good enough for now.
+    refresh_buffers_content(original_buf, buf1, buf2)
+    _is_locked = false
+  end)
+end
+
 local function jump_to_next_conflict()
   if #_conflicts == 0 then return end
   local curr_line = api.nvim_win_get_cursor(0)[1]
@@ -290,18 +301,6 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       end)
     end)
   end
-end
-
-
-local function redo(original_buf, buf1, buf2)
-  api.nvim_buf_call(original_buf, function()
-    _is_locked = true
-    api.nvim_cmd({ cmd = "redo", args = {} }, {})
-    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-    -- PERF: Relatively expensive on every redo but good enough for now.
-    refresh_buffers_content(original_buf, buf1, buf2)
-    _is_locked = false
-  end)
 end
 
 local function main()
