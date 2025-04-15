@@ -117,30 +117,6 @@ function M.parse(filepath)
   return conflicts
 end
 
-function M.update_lines(conflicts, from, to, side, is_delete)
-  local length = to - from + 1
-
-  if is_delete then length = -length end
-
-  for _, conflict in ipairs(conflicts) do
-    -- Inside of a conflict.
-    if from >= conflict.from and to <= conflict.to and to <= (conflict.from + conflict[side].len) then
-      conflict.to = conflict.to + length
-      conflict[side].len = conflict[side].len + length
-      -- Before a conflict.
-    elseif from < conflict.from and to < conflict.from then
-      conflict.from = conflict.from + length
-      conflict.to = conflict.to + length
-      -- Start border of a conflict.
-    elseif is_delete and from < conflict.from and to <= conflict.from + conflict[side].len then
-      length = math.abs(length) - (conflict.from - from)
-      conflict.from = from
-      conflict.to = conflict.to - length
-      conflict[side].len = conflict[side].len - length
-    end
-  end
-end
-
 local function refresh_buffers_content(original_buf, buf1, buf2)
   _conflicts = M.parse(api.nvim_buf_get_name(original_buf))
   local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
