@@ -338,7 +338,6 @@ local function main()
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
   local winnr = api.nvim_get_current_win()
-
   local file_content = M.get_file_content(lines, _conflicts)
 
   api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
@@ -347,21 +346,8 @@ local function main()
   api.nvim_buf_set_option(buf2, 'filetype', filetype)
   api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, true)
 
-  local win_config1 = {
-    relative = 'editor',
-    width = vim.o.columns / 2,
-    height = vim.o.lines,
-    col = 0,
-    row = 0
-  }
-
-  local win_config2 = {
-    relative = 'editor',
-    width = vim.o.columns / 2,
-    height = vim.o.lines,
-    col = vim.o.columns / 2,
-    row = 0
-  }
+  local win_config1 = { relative = 'editor', width = vim.o.columns / 2, height = vim.o.lines, col = 0, row = 0 }
+  local win_config2 = vim.tbl_extend("force", win_config1, { col = vim.o.columns / 2 })
 
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
