@@ -271,7 +271,6 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       local lines_removed = last_line - first_line
       local in_conflict = is_change_in_conflict(first_line, last_line)
       local original_file_offset = get_offset_for_original_buf(first_line, last_line, side)
-
       local added_lines = api.nvim_buf_get_lines(buf, first_line, new_end, false)
       _is_locked = true
 
