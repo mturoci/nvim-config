@@ -348,7 +348,6 @@ local function main()
 
   local win_config1 = { relative = 'editor', width = vim.o.columns / 2, height = vim.o.lines, col = 0, row = 0 }
   local win_config2 = vim.tbl_extend("force", win_config1, { col = vim.o.columns / 2 })
-
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
 
