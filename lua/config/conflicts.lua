@@ -192,10 +192,10 @@ local function jump_to_prev_conflict()
   api.nvim_win_set_cursor(0, { _conflicts[#_conflicts].from, 0 })
 end
 
-local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
+local function on_accept_both(original_buf_nr, ours_buf, theirs_buf)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for _, conflict in ipairs(conflicts) do
+  for _, conflict in ipairs(_conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
       local start = conflict.from - 1
       local ours_buf_lines = api.nvim_buf_get_lines(ours_buf, start, start + conflict.ours.len, false)
@@ -214,10 +214,10 @@ local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
   end
 end
 
-local function on_accept(conflicts, original_buf_nr, ours_buf, theirs_buf, side)
+local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for _, conflict in ipairs(conflicts) do
+  for _, conflict in ipairs(_conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
       local curr_buf = api.nvim_get_current_buf()
       local start = conflict.from - 1
@@ -332,9 +332,9 @@ local function main()
   _conflicts = M.parse(api.nvim_buf_get_name(0))
   if #_conflicts == 0 then return end
 
-  local bufnr = api.nvim_get_current_buf()
+  local buf = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
-  local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
   local winnr = api.nvim_get_current_win()
@@ -385,27 +385,22 @@ local function main()
     end,
   })
 
-  api.nvim_buf_set_keymap(buf1, 'n', 'u', '', { callback = function() undo(bufnr, buf1, buf2) end })
-  api.nvim_buf_set_keymap(buf1, 'n', '<C-r>', '', { callback = function() redo(bufnr, buf1, buf2) end })
-  api.nvim_buf_set_keymap(buf2, 'n', 'u', '', { callback = function() undo(bufnr, buf1, buf2) end })
-  api.nvim_buf_set_keymap(buf2, 'n', '<C-r>', '', { callback = function() redo(bufnr, buf1, buf2) end })
-
+  api.nvim_buf_set_keymap(buf1, 'n', 'u', '', { callback = function() undo(buf, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf2, 'n', 'u', '', { callback = function() undo(buf, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<C-r>', '', { callback = function() redo(buf, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf2, 'n', '<C-r>', '', { callback = function() redo(buf, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = jump_to_next_conflict })
   api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = jump_to_next_conflict })
   api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = jump_to_prev_conflict })
   api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = jump_to_prev_conflict })
-  api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '',
-    { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
-  api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '',
-    { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
-  api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
-    { callback = function() on_accept(_conflicts, bufnr, buf1, buf2, "ours") end })
-  api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',
-    { callback = function() on_accept(_conflicts, bufnr, buf1, buf2, "theirs") end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '', { callback = function() on_accept_both(buf, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '', { callback = function() on_accept_both(buf, buf1, buf2) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '', { callback = function() on_accept(buf, buf1, buf2, "ours") end })
+  api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '', { callback = function() on_accept(buf, buf1, buf2, "theirs") end })
 
-  api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
-  api.nvim_buf_attach(buf1, false, { on_lines = on_lines_change(buf1, buf2, bufnr, 'ours') })
-  api.nvim_buf_attach(buf2, false, { on_lines = on_lines_change(buf2, buf1, bufnr, 'theirs') })
+  api.nvim_buf_set_option(buf, 'bufhidden', 'hide')
+  api.nvim_buf_attach(buf1, false, { on_lines = on_lines_change(buf1, buf2, buf, 'ours') })
+  api.nvim_buf_attach(buf2, false, { on_lines = on_lines_change(buf2, buf1, buf, 'theirs') })
 end
 
 api.nvim_create_autocmd({ 'BufReadPost' }, {
