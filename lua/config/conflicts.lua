@@ -407,8 +407,8 @@ api.nvim_create_autocmd({ 'BufReadPost' }, {
   -- TODO: Read up on augroups and how to properly use them.
   group = vim.api.nvim_create_augroup('conflict_resolve', { clear = true }),
   callback = utils.async(function()
-    local nvm_env = os.getenv('NVIM_ENV')
-    if nvm_env == 'test' then return main() end
+    local nvim_env = os.getenv('NVIM_ENV')
+    if nvim_env == 'test' then return main() end
 
     local git_status = utils.spawn("git", { 'diff', '--name-only', '--diff-filter=U' })
     if git_status == "" then return end
