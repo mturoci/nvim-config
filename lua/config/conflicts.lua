@@ -255,8 +255,8 @@ local function get_offset_for_original_buf(from, to, conflict_side)
   return offset
 end
 
-local function is_change_in_conflict(from, to, conflicts)
-  for _, conflict in ipairs(conflicts) do
+local function is_change_in_conflict(from, to)
+  for _, conflict in ipairs(_conflicts) do
     if conflict.from >= from + 1 and conflict.to < to + 1 then return true end
   end
   return false
@@ -269,7 +269,7 @@ local function on_lines_change(buf, other_buf, original_buf, side)
     vim.schedule(function()
       local lines_added = new_end - first_line
       local lines_removed = last_line - first_line
-      local in_conflict = is_change_in_conflict(first_line, last_line, _conflicts)
+      local in_conflict = is_change_in_conflict(first_line, last_line)
       local original_file_offset = get_offset_for_original_buf(first_line, last_line, side)
 
       local added_lines = api.nvim_buf_get_lines(buf, first_line, new_end, false)
