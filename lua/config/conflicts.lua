@@ -362,9 +362,8 @@ local function main()
   local buf_enter_autocmd_id = api.nvim_create_autocmd("BufEnter", {
     callback = function()
       local ok, skip = pcall(api.nvim_win_get_var, 0, NO_FOCUS_FLAG)
-      if ok and skip then
-        vim.cmd("wincmd w") -- Skip this window and move to the next
-      end
+      -- Skip this window and move to the next.
+      if ok and skip then vim.cmd("wincmd w") end
     end,
   })
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
