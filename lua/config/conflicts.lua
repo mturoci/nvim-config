@@ -25,7 +25,6 @@ local function highlight(buf, ns, from, to)
 end
 
 function M.apply_highlights(left_buf, right_buf, conflicts)
-  -- Remove previous highlights
   api.nvim_buf_clear_namespace(left_buf, -1, 0, -1)
   api.nvim_buf_clear_namespace(right_buf, -1, 0, -1)
 
@@ -181,7 +180,7 @@ local function jump_to_prev_conflict()
   api.nvim_win_set_cursor(0, { _conflicts[#_conflicts].from, 0 })
 end
 
-local function on_accept_both(original_buf_nr, ours_buf, theirs_buf)
+local function on_accept_both(original_buf, ours_buf, theirs_buf)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
   for _, conflict in ipairs(_conflicts) do
@@ -192,11 +191,11 @@ local function on_accept_both(original_buf_nr, ours_buf, theirs_buf)
       local all_lines = join_tables(ours_buf_lines, theirs_buf_lines)
 
       _is_locked = true
-      api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
-      api.nvim_buf_call(original_buf_nr, function()
+      api.nvim_buf_set_lines(original_buf, conflict.original_from - 1, conflict.original_to, false, all_lines)
+      api.nvim_buf_call(original_buf, function()
         api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
         -- PERF: Relatively expensive on every accept but good enough for now.
-        refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
+        refresh_buffers_content(original_buf, ours_buf, theirs_buf)
         _is_locked = false
       end)
     end
@@ -225,9 +224,9 @@ local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
   end
 end
 
-local function get_offset_for_original_buf(from, to, conflicts, conflict_side)
+local function get_offset_for_original_buf(from, to, conflict_side)
   local offset = 0
-  for _, conflict in ipairs(conflicts) do
+  for _, conflict in ipairs(_conflicts) do
     if to < conflict.from then break end
 
     if from >= conflict.to then -- Outside the conflict.
@@ -271,7 +270,7 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       local lines_added = new_end - first_line
       local lines_removed = last_line - first_line
       local in_conflict = is_change_in_conflict(first_line, last_line, _conflicts)
-      local original_file_offset = get_offset_for_original_buf(first_line, last_line, _conflicts, side)
+      local original_file_offset = get_offset_for_original_buf(first_line, last_line, side)
 
       local added_lines = api.nvim_buf_get_lines(buf, first_line, new_end, false)
       _is_locked = true
