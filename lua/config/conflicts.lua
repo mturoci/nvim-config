@@ -139,6 +139,28 @@ function M.update_lines(conflicts, from, to, side, is_delete)
   end
 end
 
+local function refresh_buffers_content(original_buf, buf1, buf2)
+  _conflicts = M.parse(api.nvim_buf_get_name(original_buf))
+  local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+  local file_content = M.get_file_content(lines, _conflicts)
+
+  api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
+  api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
+
+  M.apply_highlights(buf1, buf2, _conflicts)
+end
+
+local function undo(original_buf, buf1, buf2)
+  api.nvim_buf_call(original_buf, function()
+    is_locked = true
+    api.nvim_cmd({ cmd = "undo", args = {} }, {})
+    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+    -- PERF: Relatively expensive on every undo but good enough for now.
+    refresh_buffers_content(original_buf, buf1, buf2)
+    is_locked = false
+  end)
+end
+
 local function jump_to_next_conflict(conflicts)
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
@@ -170,7 +192,6 @@ end
 
 local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
   local curr_line = api.nvim_win_get_cursor(0)[1]
-  local new_conflicts = {}
 
   for _, conflict in ipairs(conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
@@ -181,20 +202,18 @@ local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
 
       is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, all_lines)
-      api.nvim_buf_set_lines(ours_buf, start, conflict.to, false, all_lines)
-      api.nvim_buf_set_lines(theirs_buf, start, conflict.to, false, all_lines)
-      is_locked = false
-    else
-      table.insert(new_conflicts, conflict)
+      api.nvim_buf_call(original_buf_nr, function()
+        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+        -- PERF: Relatively expensive on every accept but good enough for now.
+        refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
+        is_locked = false
+      end)
     end
   end
-
-  return new_conflicts
 end
 
-local function on_accept(conflicts, original_buf_nr, other_buf_nr, side)
+local function on_accept(conflicts, original_buf_nr, ours_buf, theirs_buf, side)
   local curr_line = api.nvim_win_get_cursor(0)[1]
-  local new_conflicts = {}
 
   for _, conflict in ipairs(conflicts) do
     if curr_line >= conflict.from and curr_line <= conflict.to then
@@ -202,17 +221,17 @@ local function on_accept(conflicts, original_buf_nr, other_buf_nr, side)
       local start = conflict.from - 1
       local len = conflict[side].len
       local lines = api.nvim_buf_get_lines(curr_buf, start, start + len, false)
+
       is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
-      api.nvim_buf_set_lines(other_buf_nr, start, conflict.to, false, lines)
-      api.nvim_buf_set_lines(curr_buf, start, conflict.to, false, lines)
-      is_locked = false
-    else
-      table.insert(new_conflicts, conflict)
+      api.nvim_buf_call(original_buf_nr, function()
+        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
+        -- PERF: Relatively expensive on every accept but good enough for now.
+        refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
+        is_locked = false
+      end)
     end
   end
-
-  return new_conflicts
 end
 
 local CONFLICT_MARKER_COUNT = 3
@@ -295,26 +314,6 @@ local function on_lines_change(buf, other_buf, original_buf, side)
   end
 end
 
-local function refresh_buffers_content(original_buf, buf1, buf2)
-  _conflicts = M.parse(api.nvim_buf_get_name(original_buf))
-  local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
-  local file_content = M.get_file_content(lines, _conflicts)
-
-  api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
-  api.nvim_buf_set_lines(buf2, 0, -1, false, file_content.theirs)
-
-  M.apply_highlights(buf1, buf2, _conflicts)
-end
-local function undo(original_buf, buf1, buf2)
-  api.nvim_buf_call(original_buf, function()
-    is_locked = true
-    api.nvim_cmd({ cmd = "undo", args = {} }, {})
-    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-    -- PERF: Relatively expensive on every undo but good enough for now.
-    refresh_buffers_content(original_buf, buf1, buf2)
-    is_locked = false
-  end)
-end
 
 local function redo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
@@ -408,15 +407,7 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '',
-    {
-      callback = function()
-        local new_conflicts = on_accept_both(_conflicts, bufnr, buf1, buf2)
-        if #new_conflicts ~= #_conflicts then
-          _conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, _conflicts)
-        end
-      end
-    })
+    { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '',
     {
       callback = function()
@@ -428,25 +419,9 @@ local function on_conflict()
       end
     })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>a', '',
-    {
-      callback = function()
-        local new_conflicts = on_accept(_conflicts, bufnr, buf2, "ours")
-        if #new_conflicts ~= #_conflicts then
-          _conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, _conflicts)
-        end
-      end
-    })
+    { callback = function() on_accept(_conflicts, bufnr, buf1, buf2, "ours") end })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>a', '',
-    {
-      callback = function()
-        local new_conflicts = on_accept(_conflicts, bufnr, buf1, "theirs")
-        if #new_conflicts ~= #_conflicts then
-          _conflicts = new_conflicts
-          M.apply_highlights(buf1, buf2, _conflicts)
-        end
-      end
-    })
+    { callback = function() on_accept(_conflicts, bufnr, buf1, buf2, "theirs") end })
 
   api.nvim_buf_set_option(bufnr, 'bufhidden', 'hide')
   api.nvim_buf_attach(buf1, false, { on_lines = on_lines_change(buf1, buf2, bufnr, 'ours') })
