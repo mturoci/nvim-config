@@ -328,11 +328,11 @@ local function redo(original_buf, buf1, buf2)
   end)
 end
 
-local function on_conflict()
-  local bufnr = api.nvim_get_current_buf()
-  _conflicts = M.parse(api.nvim_buf_get_name(bufnr))
+local function main()
+  _conflicts = M.parse(api.nvim_buf_get_name(0))
   if #_conflicts == 0 then return end
 
+  local bufnr = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
   local lines = api.nvim_buf_get_lines(bufnr, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
@@ -429,7 +429,7 @@ api.nvim_create_autocmd({ 'BufReadPost' }, {
   group = vim.api.nvim_create_augroup('conflict_resolve', { clear = true }),
   callback = utils.async(function()
     local nvm_env = os.getenv('NVIM_ENV')
-    if nvm_env == 'test' then return on_conflict() end
+    if nvm_env == 'test' then return main() end
 
     local git_status = utils.spawn("git", { 'diff', '--name-only', '--diff-filter=U' })
     if git_status == "" then return end
@@ -437,7 +437,7 @@ api.nvim_create_autocmd({ 'BufReadPost' }, {
     utils.vim_loop(function()
       local bufname = api.nvim_buf_get_name(0)
       for file in git_status:gmatch("[^\r\n]+") do
-        if bufname:match(file .. '$') then return on_conflict() end
+        if bufname:match(file .. '$') then return main() end
       end
     end)
   end)
