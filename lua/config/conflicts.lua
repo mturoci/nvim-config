@@ -161,10 +161,11 @@ local function undo(original_buf, buf1, buf2)
   end)
 end
 
-local function jump_to_next_conflict(conflicts)
+local function jump_to_next_conflict()
+  if #_conflicts == 0 then return end
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for _, conflict in ipairs(conflicts) do
+  for _, conflict in ipairs(_conflicts) do
     if curr_line < conflict.from then
       api.nvim_win_set_cursor(0, { conflict.from, 0 })
       return
@@ -172,14 +173,15 @@ local function jump_to_next_conflict(conflicts)
   end
 
   -- If we are at the end of the file with no more conflicts, jump to the first conflict.
-  api.nvim_win_set_cursor(0, { conflicts[1].from, 0 })
+  api.nvim_win_set_cursor(0, { _conflicts[1].from, 0 })
 end
 
-local function jump_to_prev_conflict(conflicts)
+local function jump_to_prev_conflict()
+  if #_conflicts == 0 then return end
   local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for i = #conflicts, 1, -1 do
-    local conflict = conflicts[i]
+  for i = #_conflicts, 1, -1 do
+    local conflict = _conflicts[i]
     if curr_line > conflict.from then
       api.nvim_win_set_cursor(0, { conflict.from, 0 })
       return
@@ -187,7 +189,7 @@ local function jump_to_prev_conflict(conflicts)
   end
 
   -- If we are at the start of the file with no more conflicts, jump to the last conflict.
-  api.nvim_win_set_cursor(0, { conflicts[#conflicts].from, 0 })
+  api.nvim_win_set_cursor(0, { _conflicts[#_conflicts].from, 0 })
 end
 
 local function on_accept_both(conflicts, original_buf_nr, ours_buf, theirs_buf)
@@ -404,10 +406,10 @@ local function on_conflict()
   api.nvim_buf_set_keymap(buf2, 'n', 'u', '', { callback = function() undo(bufnr, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf2, 'n', '<C-r>', '', { callback = function() redo(bufnr, buf1, buf2) end })
 
-  api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
-  api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = function() jump_to_next_conflict(_conflicts) end })
-  api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
-  api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = function() jump_to_prev_conflict(_conflicts) end })
+  api.nvim_buf_set_keymap(buf1, 'n', '[c', '', { callback = jump_to_next_conflict })
+  api.nvim_buf_set_keymap(buf2, 'n', '[c', '', { callback = jump_to_next_conflict })
+  api.nvim_buf_set_keymap(buf1, 'n', ']c', '', { callback = jump_to_prev_conflict })
+  api.nvim_buf_set_keymap(buf2, 'n', ']c', '', { callback = jump_to_prev_conflict })
   api.nvim_buf_set_keymap(buf1, 'n', '<leader>b', '',
     { callback = function() on_accept_both(_conflicts, bufnr, buf1, buf2) end })
   api.nvim_buf_set_keymap(buf2, 'n', '<leader>b', '',
