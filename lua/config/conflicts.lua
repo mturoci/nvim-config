@@ -293,10 +293,7 @@ local function on_lines_change(buf, other_buf, original_buf, side)
         api.nvim_buf_set_lines(original_buf, line, line + 1, false, added_lines)
       end
 
-      api.nvim_buf_call(original_buf, function()
-        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-        _is_locked = false
-      end)
+      _is_locked = false
     end)
   end
 end
