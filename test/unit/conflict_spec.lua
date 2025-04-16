@@ -3,14 +3,11 @@ local tmp_file = '/tmp/conflicts.txt'
 local eq = assert.are.same
 
 local function parse(content)
-  local file = io.open(tmp_file, "w")
-  if file then
-    file:write(content)
-    file:close()
-  else
-    error("Could not open file for writing.")
+  local lines = {}
+  for line in content:gmatch('[^\r\n]+') do
+    table.insert(lines, line)
   end
-  return conflicts.parse(tmp_file)
+  return conflicts.parse(lines)
 end
 
 describe('Conflicts builder', function()
@@ -95,14 +92,6 @@ This is some more text.
 
   it('should return empty table when file is empty', function()
     eq({}, parse(''))
-  end)
-
-  it('should throw error when file does not exist', function()
-    if pcall(conflicts.parse, 'non-existent-file.txt') then
-      assert.is.falsy(true)
-    else
-      assert.is.truthy(true)
-    end
   end)
 
   it('should parse a conflict with multiple lines and multiple conflicts', function()

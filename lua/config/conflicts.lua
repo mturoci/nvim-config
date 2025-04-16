@@ -89,15 +89,13 @@ function M.file_exists(file)
   return f ~= nil
 end
 
-function M.parse(filepath)
-  if not M.file_exists(filepath) then error("File does not exist.") end
-
+function M.parse(lines)
   local conflicts = {}
   local conflict = {}
   local line_number = 0
   local total_removed_lines = 0
 
-  for line in io.lines(filepath) do
+  for _, line in ipairs(lines) do
     line_number = line_number + 1
     if line:match("<<<<<<< HEAD") then
       conflict = { from = line_number - total_removed_lines, original_from = line_number }
@@ -117,8 +115,8 @@ function M.parse(filepath)
 end
 
 local function refresh_buffers_content(original_buf, buf1, buf2)
-  _conflicts = M.parse(api.nvim_buf_get_name(original_buf))
   local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+  _conflicts = M.parse(lines)
   local file_content = M.get_file_content(lines, _conflicts)
 
   api.nvim_buf_set_lines(buf1, 0, -1, false, file_content.ours)
@@ -131,7 +129,6 @@ local function undo(original_buf, buf1, buf2)
   api.nvim_buf_call(original_buf, function()
     _is_locked = true
     api.nvim_cmd({ cmd = "undo", args = {} }, {})
-    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
     -- PERF: Relatively expensive on every undo but good enough for now.
     refresh_buffers_content(original_buf, buf1, buf2)
     _is_locked = false
@@ -142,7 +139,6 @@ local function redo(original_buf, ours_buf, theirs_buf)
   api.nvim_buf_call(original_buf, function()
     _is_locked = true
     api.nvim_cmd({ cmd = "redo", args = {} }, {})
-    api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
     -- PERF: Relatively expensive on every redo but good enough for now.
     refresh_buffers_content(original_buf, ours_buf, theirs_buf)
     _is_locked = false
@@ -192,12 +188,9 @@ local function on_accept_both(original_buf, ours_buf, theirs_buf)
 
       _is_locked = true
       api.nvim_buf_set_lines(original_buf, conflict.original_from - 1, conflict.original_to, false, all_lines)
-      api.nvim_buf_call(original_buf, function()
-        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-        -- PERF: Relatively expensive on every accept but good enough for now.
-        refresh_buffers_content(original_buf, ours_buf, theirs_buf)
-        _is_locked = false
-      end)
+      -- PERF: Relatively expensive on every accept but good enough for now.
+      refresh_buffers_content(original_buf, ours_buf, theirs_buf)
+      _is_locked = false
     end
   end
 end
@@ -214,12 +207,9 @@ local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
 
       _is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
-      api.nvim_buf_call(original_buf_nr, function()
-        api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {})
-        -- PERF: Relatively expensive on every accept but good enough for now.
-        refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
-        _is_locked = false
-      end)
+      -- PERF: Relatively expensive on every accept but good enough for now.
+      refresh_buffers_content(original_buf_nr, ours_buf, theirs_buf)
+      _is_locked = false
     end
   end
 end
@@ -299,12 +289,12 @@ local function on_lines_change(buf, other_buf, original_buf, side)
 end
 
 local function main()
-  _conflicts = M.parse(api.nvim_buf_get_name(0))
+  local buf = api.nvim_get_current_buf()
+  local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
+  _conflicts = M.parse(lines)
   if #_conflicts == 0 then return end
 
-  local buf = api.nvim_get_current_buf()
   local filetype = vim.bo.filetype
-  local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
   local buf1 = api.nvim_create_buf(false, true)
   local buf2 = api.nvim_create_buf(false, true)
   local winnr = api.nvim_get_current_win()
@@ -344,6 +334,7 @@ local function main()
       api.nvim_win_close(win2, true)
       api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, false)
       api.nvim_del_autocmd(buf_enter_autocmd_id)
+      api.nvim_buf_call(buf, function() api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {}) end)
     end,
   })
   api.nvim_create_autocmd({ 'BufWinLeave' }, {
@@ -353,6 +344,7 @@ local function main()
       api.nvim_win_close(win1, true)
       api.nvim_win_set_var(winnr, NO_FOCUS_FLAG, false)
       api.nvim_del_autocmd(buf_enter_autocmd_id)
+      api.nvim_buf_call(buf, function() api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {}) end)
     end,
   })
 
