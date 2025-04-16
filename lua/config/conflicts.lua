@@ -323,6 +323,7 @@ local function main()
   local win_config2 = vim.tbl_extend("force", win_config1, { col = vim.o.columns / 2 })
   local win1 = api.nvim_open_win(buf1, true, win_config1)
   local win2 = api.nvim_open_win(buf2, true, win_config2)
+  api.nvim_set_current_win(win1)
 
   -- Sync scroll
   api.nvim_win_set_option(win1, 'scrollbind', true)
