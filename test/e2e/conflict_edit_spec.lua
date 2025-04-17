@@ -1,7 +1,9 @@
 local jobopts = { rpc = true, width = 80, height = 24, env = { NVIM_ENV = 'test' } }
 local eq = assert.is.equal
 local original_file_content = {}
+local original_file_content_ours_longer = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
+local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
 
 describe('Conflict editing', function()
   local nvim
@@ -10,12 +12,14 @@ describe('Conflict editing', function()
   before_each(function()
     nvim = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, jobopts)
     original_file_content = vim.fn.readfile(fixture_file)
+    original_file_content_ours_longer = vim.fn.readfile(fixture_file_ours_longer)
   end)
 
   after_each(function()
     print(vim.fn.rpcrequest(nvim, 'nvim_eval', "execute('messages')"))
     vim.fn.jobstop(nvim)
     vim.fn.writefile(original_file_content, fixture_file)
+    vim.fn.writefile(original_file_content_ours_longer, fixture_file_ours_longer)
   end)
 
 
@@ -41,6 +45,30 @@ Theirs conflict.
 Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Changes file contents inside the conflict in the other buf and the original - ours longer #run', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dw')
+
+    local expected = 'conflict.\nOurs conflict.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = 'Theirs conflict.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    -- expected = [[
+    -- Foo barRegular text.
+    -- <<<<<<< HEAD
+    -- Ours conflict.
+    -- =======
+    -- Theirs conflict.
+    -- >>>>>>> another-branch
+    -- Regular text.]]
+    -- result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    -- eq(expected, table.concat(result, '\n'))
   end)
 
   it('Changes file contents at the end, outside the conflict in the other buf and the original - right side', function()
