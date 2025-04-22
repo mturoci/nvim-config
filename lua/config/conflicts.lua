@@ -216,10 +216,16 @@ end
 
 local function get_offset_for_original_buf(from, to, conflict_side)
   local offset = 0
+  -- conflicts use 1-based indexing
+  from = from + 1
+  to = to + 1
+  -- print('from', from)
+  -- print('to', to)
+  -- print(vim.inspect(_conflicts))
   for _, conflict in ipairs(_conflicts) do
-    if to < conflict.from then break end
+    if to <= conflict.from then break end
 
-    if from >= conflict.to then -- Outside the conflict.
+    if from > conflict.to then -- Outside the conflict.
       if conflict_side == 'ours' then
         offset = offset + conflict.theirs.len
       else
@@ -228,15 +234,11 @@ local function get_offset_for_original_buf(from, to, conflict_side)
       offset = offset + CONFLICT_MARKER_COUNT
     else -- Inside the conflict.
       if conflict_side == 'ours' then
-        local offset_within_conflict = 0
-        if from <= conflict.from then
-          offset_within_conflict = conflict.ours.len - (to - from)
-        end
-        offset = offset + CONFLICT_MARKER_COUNT - 2 + offset_within_conflict
+        offset = offset + CONFLICT_MARKER_COUNT - 2
       else
         local offset_within_conflict = 0
         if from <= conflict.from then
-          offset_within_conflict = conflict.theirs.len - (to - from)
+          offset_within_conflict = conflict.ours.len - (to - from)
         end
         offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT - 1 + offset_within_conflict
       end
@@ -246,8 +248,11 @@ local function get_offset_for_original_buf(from, to, conflict_side)
 end
 
 local function is_change_in_conflict(from, to)
+  -- conflicts use 1-based indexing
+  from = from + 1
+  to = to + 1
   for _, conflict in ipairs(_conflicts) do
-    if conflict.from >= from + 1 and conflict.to < to + 1 then return true end
+    if from >= conflict.from and from <= conflict.to then return true end
   end
   return false
 end
