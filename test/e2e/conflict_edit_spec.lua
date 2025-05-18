@@ -2,8 +2,12 @@ local jobopts = { rpc = true, width = 80, height = 24, env = { NVIM_ENV = 'test'
 local eq = assert.is.equal
 local original_file_content = {}
 local original_file_content_ours_longer = {}
+local original_file_content_multiple = {}
+local original_file_content_multiple_ours_longer = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
 local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
+local fixture_file_multiple = './test/fixtures/conflict_multiple.txt'
+local fixture_file_multiple_ours_longer = './test/fixtures/conflict_multiple_ours_longer.txt'
 
 describe('Conflict editing', function()
   local nvim
@@ -13,6 +17,8 @@ describe('Conflict editing', function()
     nvim = vim.fn.jobstart({ 'nvim', '--embed', '--headless' }, jobopts)
     original_file_content = vim.fn.readfile(fixture_file)
     original_file_content_ours_longer = vim.fn.readfile(fixture_file_ours_longer)
+    original_file_content_multiple = vim.fn.readfile(fixture_file_multiple)
+    original_file_content_multiple_ours_longer = vim.fn.readfile(fixture_file_multiple_ours_longer)
   end)
 
   after_each(function()
@@ -20,6 +26,8 @@ describe('Conflict editing', function()
     vim.fn.jobstop(nvim)
     vim.fn.writefile(original_file_content, fixture_file)
     vim.fn.writefile(original_file_content_ours_longer, fixture_file_ours_longer)
+    vim.fn.writefile(original_file_content_multiple, fixture_file_multiple)
+    vim.fn.writefile(original_file_content_multiple_ours_longer, fixture_file_multiple_ours_longer)
   end)
 
 
@@ -62,6 +70,31 @@ Regular text.]]
     expected = [[
 <<<<<<< HEAD
 conflict.
+Ours conflict.
+=======
+Theirs conflict.
+>>>>>>> another-branch]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Adds line inside the conflict in the other buf and the original - ours longer', function()
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+
+    local expected = 'Ours conflict.\nOurs conflict.\nOurs conflict.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = 'Theirs conflict.\n'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+<<<<<<< HEAD
+Ours conflict.
+Ours conflict.
 Ours conflict.
 =======
 Theirs conflict.
@@ -350,4 +383,48 @@ Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
+
+  --   it('Changes line count in first conflict and accepts second #run', function()
+  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_multiple_ours_longer)
+  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+  --
+  --     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
+  --     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
+  --     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
+  --       true)
+  --
+  --     -- Add sleep to wait for the command to finish.
+  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+  --
+  --     local expected = [[
+  -- Ours conflict.
+  -- Ours conflict.
+  -- Ours conflict.
+  --
+  -- Ours conflict.
+  -- Ours conflict.]]
+  --     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+  --     eq(expected, table.concat(result, '\n'))
+  --
+  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
+  --     expected = "Regular text.\nOurs conflict.\nRegular text."
+  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+  --     eq(expected, table.concat(result, '\n'))
+  --
+  --     expected = [[
+  --     First line
+  --     <<<<<<< HEAD
+  --     Ours conflict.
+  --     Ours conflict.
+  --     =======
+  --     Theirs conflict.
+  --     >>>>>>> another-branch
+  --
+  --     Ours conflict.
+  --     Theirs conflict.
+  --     Regular text.]]
+  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+  --     eq(expected, table.concat(result, '\n'))
+  --   end)
 end)

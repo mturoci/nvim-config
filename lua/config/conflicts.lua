@@ -147,17 +147,19 @@ end
 
 local function jump_to_next_conflict()
   if #_conflicts == 0 then return end
-  local curr_line = api.nvim_win_get_cursor(0)[1]
+  vim.schedule(function()
+    local curr_line = api.nvim_win_get_cursor(0)[1]
 
-  for _, conflict in ipairs(_conflicts) do
-    if curr_line < conflict.from then
-      api.nvim_win_set_cursor(0, { conflict.from, 0 })
-      return
+    for _, conflict in ipairs(_conflicts) do
+      if curr_line < conflict.from then
+        api.nvim_win_set_cursor(0, { conflict.from, 0 })
+        return
+      end
     end
-  end
 
-  -- If we are at the end of the file with no more conflicts, jump to the first conflict.
-  api.nvim_win_set_cursor(0, { _conflicts[1].from, 0 })
+    -- If we are at the end of the file with no more conflicts, jump to the first conflict.
+    api.nvim_win_set_cursor(0, { _conflicts[1].from, 0 })
+  end)
 end
 
 local function jump_to_prev_conflict()
@@ -219,9 +221,6 @@ local function get_offset_for_original_buf(from, to, conflict_side)
   -- conflicts use 1-based indexing
   from = from + 1
   to = to + 1
-  -- print('from', from)
-  -- print('to', to)
-  -- print(vim.inspect(_conflicts))
   for _, conflict in ipairs(_conflicts) do
     if to <= conflict.from then break end
 
@@ -279,14 +278,21 @@ local function on_lines_change(buf, other_buf, original_buf, side)
 
       if lines_added > lines_removed then
         local line = first_line + original_file_offset
-        api.nvim_buf_set_lines(original_buf, line, line + lines_added, false, added_lines)
+        api.nvim_buf_set_lines(original_buf, line, line, false, added_lines)
+        local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+        _conflicts = M.parse(lines)
       elseif lines_added < lines_removed then
         api.nvim_buf_set_lines(original_buf, first_line + original_file_offset, last_line + original_file_offset, false,
           {})
+        local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+        _conflicts = M.parse(lines)
       elseif lines_added == lines_removed then
         local line = first_line + original_file_offset
         api.nvim_buf_set_lines(original_buf, line, line + 1, false, added_lines)
       end
+
+      local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
+      _conflicts = M.parse(lines)
 
       _is_locked = false
     end)
