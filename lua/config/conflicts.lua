@@ -6,6 +6,7 @@ local CONFLICT_MARKER_COUNT = 3
 
 local _conflicts            = {}
 local _is_locked            = false
+local _cursor_pos           = 1
 
 local function join_tables(t1, t2)
   local t = {}
@@ -216,11 +217,10 @@ local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
   end
 end
 
-local function get_offset_for_original_buf(from, to, conflict_side)
+local function get_offset_for_original_buf(to, conflict_side)
   local offset = 0
-  -- conflicts use 1-based indexing
-  from = from + 1
-  to = to + 1
+  local from = _cursor_pos
+  to = to + 1 -- conflicts use 1-based indexing
   for _, conflict in ipairs(_conflicts) do
     if to <= conflict.from then break end
 
@@ -246,12 +246,9 @@ local function get_offset_for_original_buf(from, to, conflict_side)
   return offset
 end
 
-local function is_change_in_conflict(from, to)
-  -- conflicts use 1-based indexing
-  from = from + 1
-  to = to + 1
+local function is_change_in_conflict()
   for _, conflict in ipairs(_conflicts) do
-    if from >= conflict.from and from <= conflict.to then return true end
+    if _cursor_pos >= conflict.from and _cursor_pos <= conflict.to then return true end
   end
   return false
 end
@@ -263,8 +260,8 @@ local function on_lines_change(buf, other_buf, original_buf, side)
     vim.schedule(function()
       local lines_added = new_end - first_line
       local lines_removed = last_line - first_line
-      local in_conflict = is_change_in_conflict(first_line, last_line)
-      local original_file_offset = get_offset_for_original_buf(first_line, last_line, side)
+      local in_conflict = is_change_in_conflict()
+      local original_file_offset = get_offset_for_original_buf(last_line, side)
       local added_lines = api.nvim_buf_get_lines(buf, first_line, new_end, false)
       _is_locked = true
 
@@ -357,6 +354,17 @@ local function main()
       api.nvim_del_autocmd(buf_enter_autocmd_id)
       api.nvim_buf_call(buf, function() api.nvim_cmd({ cmd = "write", args = {}, mods = { silent = true } }, {}) end)
     end,
+  })
+
+  api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+    group = vim.api.nvim_create_augroup('conflict_resolve_cursor_move_1', { clear = true }),
+    buffer = buf1,
+    callback = function() _cursor_pos = api.nvim_win_get_cursor(0)[1] end,
+  })
+  api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+    group = vim.api.nvim_create_augroup('conflict_resolve_cursor_move_2', { clear = true }),
+    buffer = buf2,
+    callback = function() _cursor_pos = api.nvim_win_get_cursor(0)[1] end,
   })
 
   api.nvim_buf_set_keymap(buf1, 'n', 'u', '', { callback = function() undo(buf, buf1, buf2) end })

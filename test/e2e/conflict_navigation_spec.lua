@@ -1,5 +1,6 @@
 local jobopts = { rpc = true, width = 80, height = 24, env = { NVIM_ENV = 'test' } }
 local eq = assert.is.equal
+local utils = require 'test.e2e.test_utils'
 
 describe('Conflict navigation', function()
   local nvim
@@ -16,7 +17,7 @@ describe('Conflict navigation', function()
 
 
   it('Do not jump to original buffer when using CTRL-W w', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_other.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_other.txt')
     eq(2, vim.fn.rpcrequest(nvim, 'nvim_eval', 'bufnr("%")'))
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     eq(3, vim.fn.rpcrequest(nvim, 'nvim_eval', 'bufnr("%")'))

@@ -3,6 +3,7 @@ local eq = assert.is.equal
 local original_file_content = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
 local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
+local utils = require 'test.e2e.test_utils'
 
 describe('Conflict highlight', function()
   local nvim
@@ -20,7 +21,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on rhs properly', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -32,7 +33,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on lhs properly', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -44,7 +45,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on lhs properly when ours is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -57,7 +58,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on rhs properly when ours is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -70,7 +71,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on lhs properly when theirs is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_theirs_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -83,7 +84,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights conflict on rhs properly when theirs is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_theirs_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -96,7 +97,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights multiple conflicts properly on rhs', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -113,7 +114,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights multiple conflicts properly on lhs', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -131,7 +132,7 @@ describe('Conflict highlight', function()
 
 
   it('Highlights multiple conflicts properly on rhs when theirs is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple_theirs_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -150,7 +151,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights multiple conflicts properly on lhs when theirs is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple_theirs_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -169,7 +170,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights multiple conflicts properly on rhs when ours is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_ours_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple_ours_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -188,7 +189,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Highlights multiple conflicts properly on lhs when ours is longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_multiple_ours_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_multiple_ours_longer.txt')
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
     assert.is.truthy(mark1Namespace)
@@ -207,7 +208,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Removes highlight after accepting conflict', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     -- Expect there to be a single highlight.
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']
@@ -230,7 +231,7 @@ describe('Conflict highlight', function()
   end)
 
   it('Removes highlight after accepting both conflicts', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     -- Expect there to be a single highlight.
     local ns = vim.fn.rpcrequest(nvim, 'nvim_get_namespaces')
     local mark1Namespace = ns['conflict_mark:1']

@@ -8,6 +8,7 @@ local fixture_file = './test/fixtures/conflict_other.txt'
 local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
 local fixture_file_multiple = './test/fixtures/conflict_multiple.txt'
 local fixture_file_multiple_ours_longer = './test/fixtures/conflict_multiple_ours_longer.txt'
+local utils = require 'test.e2e.test_utils'
 
 describe('Conflict editing', function()
   local nvim
@@ -32,7 +33,7 @@ describe('Conflict editing', function()
 
 
   it('Changes file contents outside the conflict in the other buf and the original', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'iFoo bar', 'x', false)
 
     local expected = 'Foo barRegular text.\nOurs conflict.\nRegular text.'
@@ -56,7 +57,7 @@ Regular text.]]
   end)
 
   it('Changes file contents inside the conflict in the other buf and the original - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dw')
 
     local expected = 'conflict.\nOurs conflict.'
@@ -79,7 +80,7 @@ Theirs conflict.
   end)
 
   it('Adds line inside the conflict in the other buf and the original - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
 
@@ -104,13 +105,15 @@ Theirs conflict.
   end)
 
   it('Changes file contents at the end, outside the conflict in the other buf and the original - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal G')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'oFoo bar', 'x', false)
 
     local expected = 'Regular text.\nTheirs conflict.\nRegular text.\nFoo bar'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Regular text.\nOurs conflict.\nRegular text.\nFoo bar'
@@ -131,8 +134,10 @@ Foo bar]]
   end)
 
   it('Changes file contents at the end, inside the conflict in the other buf and the original', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'iFoo bar', 'x', false)
 
     local expected = 'Regular text.\nFoo barOurs conflict.\nRegular text.'
@@ -155,14 +160,47 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
+  it('Adds a new line inside the conflict in the other buf and the original', function()
+    utils.open_file(nvim, fixture_file)
+    -- Add sleep to wait for autocmds to be registered properly.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+
+    local expected = 'Regular text.\nOurs conflict.\nOurs conflict.\nRegular text.'
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = 'Regular text.\nTheirs conflict.\nRegular text.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+Regular text.
+<<<<<<< HEAD
+Ours conflict.
+Ours conflict.
+=======
+Theirs conflict.
+>>>>>>> another-branch
+Regular text.]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
   it('Removes the row at the end - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal G')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
 
     local expected = 'Regular text.\nTheirs conflict.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -177,9 +215,13 @@ Theirs conflict.
   end)
 
   it('Removes the row inside the conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
 
     local expected = 'Regular text.\nRegular text.'
@@ -198,13 +240,21 @@ Regular text.]]
   end)
 
   it('Removes the row inside the conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
 
     local expected = 'Regular text.\nRegular text.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = 'Regular text.\nOurs conflict.\nRegular text.'
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -219,7 +269,7 @@ Regular text.]]
   end)
 
   it('Removes the row outside the conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
@@ -239,7 +289,7 @@ Regular text.]]
   end)
 
   it('Undoes change outside of conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
@@ -254,9 +304,13 @@ Regular text.]]
   end)
 
   it('Undoes change inside of conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
     local expected = "Regular text.\nRegular text."
@@ -273,7 +327,7 @@ Regular text.]]
   end)
 
   it('Undoes change outside of conflict left side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
     local expected = 'Ours conflict.\nRegular text.'
@@ -287,8 +341,10 @@ Regular text.]]
   end)
 
   it('Undoes change inside of conflict left side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
     local expected = "Regular text.\nRegular text."
@@ -305,7 +361,7 @@ Regular text.]]
   end)
 
   it('Redoes change outside of conflict - right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
@@ -325,9 +381,11 @@ Regular text.]]
   end)
 
   it('Redoes change inside of conflict right side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'A Foo bar.', 'x', false)
 
     local expected = "Regular text.\nTheirs conflict. Foo bar.\nRegular text."
@@ -346,7 +404,7 @@ Regular text.]]
   end)
 
   it('Redoes change outside of conflict left side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
     local expected = 'Ours conflict.\nRegular text.'
@@ -365,8 +423,10 @@ Regular text.]]
   end)
 
   it('Redoes change inside of conflict left side', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+    -- Add sleep to wait for autocmds to be triggered.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 1m')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'A Foo bar.', 'x', false)
 
     local expected = "Regular text.\nOurs conflict. Foo bar.\nRegular text."
@@ -385,7 +445,7 @@ Regular text.]]
   end)
 
   --   it('Changes line count in first conflict and accepts second #run', function()
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_multiple_ours_longer)
+  --     utils.open_file(nvim, fixture_file_multiple_ours_longer)
   --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
   --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
   --

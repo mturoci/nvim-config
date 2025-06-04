@@ -6,6 +6,7 @@ local original_file_content_theirs_longer = {}
 local fixture_file = './test/fixtures/conflict_other.txt'
 local fixture_file_ours_longer = './test/fixtures/conflict_ours_longer.txt'
 local fixture_file_theirs_longer = './test/fixtures/conflict_theirs_longer.txt'
+local utils = require 'test.e2e.test_utils'
 
 describe('Conflict accept', function()
   local nvim
@@ -28,7 +29,7 @@ describe('Conflict accept', function()
 
 
   it('Accepts ours conflict and updates all buffers properly', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -48,7 +49,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts ours conflict and updates all buffers properly - theirs longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_theirs_longer)
+    utils.open_file(nvim, fixture_file_theirs_longer)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -68,7 +69,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts ours conflict and updates all buffers properly - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
@@ -87,7 +88,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts theirs conflict and updates all buffers properly', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
@@ -108,7 +109,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts theirs conflict and updates all buffers properly - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_ours_longer)
+    utils.open_file(nvim, fixture_file_ours_longer)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -128,7 +129,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts ours conflict and updates all buffers properly - theirs longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file_theirs_longer)
+    utils.open_file(nvim, fixture_file_theirs_longer)
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
@@ -147,7 +148,7 @@ describe('Conflict accept', function()
   end)
 
   it('Does not do anything if cursor not at conflict', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
@@ -165,7 +166,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts both - ours buf', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -184,7 +185,7 @@ describe('Conflict accept', function()
   end)
 
   it('Accepts both - ours buf - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_ours_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_ours_longer.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -207,7 +208,7 @@ Theirs conflict.]]
   end)
 
   it('Accepts both - ours buf - theirs longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_theirs_longer.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
@@ -230,7 +231,7 @@ Theirs conflict.]]
   end)
 
   it('Accepts both - theirs buf', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
@@ -250,7 +251,7 @@ Theirs conflict.]]
   end)
 
   it('Accepts both - theirs buf - ours longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_ours_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_ours_longer.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
@@ -274,7 +275,7 @@ Theirs conflict.]]
   end)
 
   it('Accepts both - theirs buf - theirs longer', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ./test/fixtures/conflict_theirs_longer.txt')
+    utils.open_file(nvim, './test/fixtures/conflict_theirs_longer.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
@@ -298,7 +299,7 @@ Theirs conflict.]]
   end)
 
   it('Does not do anything if accepts both but cursor not at conflict', function()
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. fixture_file)
+    utils.open_file(nvim, fixture_file)
 
     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
