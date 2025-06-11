@@ -444,47 +444,53 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  --   it('Changes line count in first conflict and accepts second #run', function()
-  --     utils.open_file(nvim, fixture_file_multiple_ours_longer)
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
-  --     local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-  --     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-  --       true)
-  --
-  --     -- Add sleep to wait for the command to finish.
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-  --
-  --     local expected = [[
-  -- Ours conflict.
-  -- Ours conflict.
-  -- Ours conflict.
-  --
-  -- Ours conflict.
-  -- Ours conflict.]]
-  --     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
-  --     expected = "Regular text.\nOurs conflict.\nRegular text."
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 0, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --
-  --     expected = [[
-  --     First line
-  --     <<<<<<< HEAD
-  --     Ours conflict.
-  --     Ours conflict.
-  --     =======
-  --     Theirs conflict.
-  --     >>>>>>> another-branch
-  --
-  --     Ours conflict.
-  --     Theirs conflict.
-  --     Regular text.]]
-  --     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
-  --     eq(expected, table.concat(result, '\n'))
-  --   end)
+  it('Changes line count in first conflict and accepts second #run', function()
+    utils.open_file(nvim, fixture_file_multiple_ours_longer)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+
+    vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
+    -- Add sleep to wait for the command to finish.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
+      true)
+
+    -- Add sleep to wait for the command to finish.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+
+    local expected = [[
+Ours conflict.
+Ours conflict.
+Ours conflict.
+
+Ours conflict.
+Ours conflict.]]
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+Theirs conflict.
+
+
+
+Ours conflict.
+Ours conflict.]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+<<<<<<< HEAD
+Ours conflict.
+Ours conflict.
+Ours conflict.
+=======
+Theirs conflict.
+>>>>>>> another-branch
+
+Ours conflict.
+Ours conflict.]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
 end)

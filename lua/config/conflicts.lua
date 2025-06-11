@@ -207,7 +207,6 @@ local function on_accept(original_buf_nr, ours_buf, theirs_buf, side)
       local start = conflict.from - 1
       local len = conflict[side].len
       local lines = api.nvim_buf_get_lines(curr_buf, start, start + len, false)
-
       _is_locked = true
       api.nvim_buf_set_lines(original_buf_nr, conflict.original_from - 1, conflict.original_to, false, lines)
       -- PERF: Relatively expensive on every accept but good enough for now.
