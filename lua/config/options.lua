@@ -1,4 +1,5 @@
 local options = {
+  -- autoread       = true,                    --- Automatically read files changed outside of Vim
   clipboard      = "unnamed,unnamedplus",   --- Copy-paste between vim and everything else
   cmdheight      = 0,                       --- Give more space for displaying messages
   completeopt    = "menu,menuone,noselect", --- Better autocompletion
