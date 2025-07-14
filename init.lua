@@ -18,3 +18,19 @@ require("config.appearance")
 require("config.statusline")
 require("config.keymaps")
 require("config.conflicts")
+
+-- Reload all open buffers even when changed externally.
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+  pattern = '*',
+  callback = function()
+    if vim.fn.mode():match('[crt!]') or vim.fn.getcmdwintype() ~= '' then
+      return
+    end
+
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_option(buf, 'buftype') == '' then
+        vim.api.nvim_buf_call(buf, function() vim.cmd('checktime') end)
+      end
+    end
+  end,
+})
