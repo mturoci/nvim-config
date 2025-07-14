@@ -275,20 +275,19 @@ local function on_lines_change(buf, other_buf, original_buf, side)
       if lines_added > lines_removed then
         local line = first_line + original_file_offset
         api.nvim_buf_set_lines(original_buf, line, line, false, added_lines)
-        local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
-        _conflicts = M.parse(lines)
       elseif lines_added < lines_removed then
         api.nvim_buf_set_lines(original_buf, first_line + original_file_offset, last_line + original_file_offset, false,
           {})
-        local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
-        _conflicts = M.parse(lines)
       elseif lines_added == lines_removed then
         local line = first_line + original_file_offset
         api.nvim_buf_set_lines(original_buf, line, line + 1, false, added_lines)
       end
 
-      local lines = api.nvim_buf_get_lines(original_buf, 0, -1, false)
-      _conflicts = M.parse(lines)
+      if lines_added ~= lines_removed then
+        local ours_buf = side == 'ours' and buf or other_buf
+        local theirs_buf = side == 'theirs' and buf or other_buf
+        refresh_buffers_content(original_buf, ours_buf, theirs_buf)
+      end
 
       _is_locked = false
     end)
