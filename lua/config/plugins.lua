@@ -13,6 +13,12 @@ return {
   {
     'ruifm/gitlinker.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require("gitlinker").setup({
+        opts = { print_url = false, },
+        mappings = "<leader>ge"
+      })
+    end
   },
   {
     'mfussenegger/nvim-dap',
