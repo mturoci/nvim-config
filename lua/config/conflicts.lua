@@ -234,11 +234,7 @@ local function get_offset_for_original_buf(to, conflict_side)
       if conflict_side == 'ours' then
         offset = offset + CONFLICT_MARKER_COUNT - 2
       else
-        local offset_within_conflict = 0
-        if from <= conflict.from then
-          offset_within_conflict = conflict.ours.len - (to - from)
-        end
-        offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT - 1 + offset_within_conflict
+        offset = offset + conflict.ours.len + CONFLICT_MARKER_COUNT - 1
       end
     end
   end
