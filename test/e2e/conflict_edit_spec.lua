@@ -565,7 +565,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Accepts left side empty conflict #run', function()
+  it('Accepts left side empty conflict', function()
     utils.open_file(nvim, fixture_file_empty)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
 
@@ -582,15 +582,35 @@ Regular text.]]
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    expected = [[
-Regular text.
-Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    expected = [[
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Accepts right side empty conflict', function()
+    utils.open_file(nvim, fixture_file_empty)
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
+
+    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
+    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
+      true)
+
+    -- Add sleep to wait for the command to finish.
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+
+    local expected = [[
 Regular text.
+Theirs conflict.
 Regular text.]]
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
