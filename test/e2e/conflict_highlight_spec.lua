@@ -217,13 +217,7 @@ describe('Conflict highlight', function()
 
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local left_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
     local right_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 3, mark1Namespace, 0, -1, {})
     eq(0, #left_marks)
@@ -240,13 +234,7 @@ describe('Conflict highlight', function()
 
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local left_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 2, mark1Namespace, 0, -1, {})
     local right_marks = vim.fn.rpcrequest(nvim, 'nvim_buf_get_extmarks', 3, mark1Namespace, 0, -1, {})
     eq(0, #left_marks)

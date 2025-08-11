@@ -32,13 +32,8 @@ describe('Conflict accept', function()
     utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
 
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     local expected = 'Regular text.\nOurs conflict.\nRegular text.'
     eq(expected, table.concat(result, '\n'))
@@ -52,13 +47,7 @@ describe('Conflict accept', function()
     utils.open_file(nvim, fixture_file_theirs_longer)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     local expected = 'Ours conflict.'
     eq(expected, table.concat(result, '\n'))
@@ -71,13 +60,7 @@ describe('Conflict accept', function()
   it('Accepts ours conflict and updates all buffers properly - ours longer', function()
     utils.open_file(nvim, fixture_file_ours_longer)
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     local expected = 'Ours conflict.\nOurs conflict.'
     eq(expected, table.concat(result, '\n'))
@@ -92,13 +75,7 @@ describe('Conflict accept', function()
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     local expected = 'Regular text.\nTheirs conflict.\nRegular text.'
     eq(expected, table.concat(result, '\n'))
@@ -112,13 +89,7 @@ describe('Conflict accept', function()
     utils.open_file(nvim, fixture_file_ours_longer)
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
     local expected = 'Theirs conflict.'
     eq(expected, table.concat(result, '\n'))
@@ -131,12 +102,7 @@ describe('Conflict accept', function()
   it('Accepts ours conflict and updates all buffers properly - theirs longer', function()
     utils.open_file(nvim, fixture_file_theirs_longer)
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_conflict(nvim)
 
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     local expected = 'Ours conflict.'
@@ -150,13 +116,7 @@ describe('Conflict accept', function()
   it('Does not do anything if cursor not at conflict', function()
     utils.open_file(nvim, fixture_file)
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     eq('Regular text.\nOurs conflict.\nRegular text.', table.concat(result, '\n'))
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
@@ -168,13 +128,7 @@ describe('Conflict accept', function()
   it('Accepts both - ours buf', function()
     utils.open_file(nvim, fixture_file)
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
-
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
 
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq('Regular text.\nOurs conflict.\nTheirs conflict.\nRegular text.', table.concat(result, '\n'))
@@ -188,12 +142,7 @@ describe('Conflict accept', function()
     utils.open_file(nvim, './test/fixtures/conflict_ours_longer.txt')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
     local expected = [[
 Ours conflict.
 Ours conflict.
@@ -235,12 +184,7 @@ Theirs conflict.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
 
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
     eq('Regular text.\nOurs conflict.\nTheirs conflict.\nRegular text.', table.concat(result, '\n'))
@@ -255,12 +199,7 @@ Theirs conflict.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
     local expected = [[
 Ours conflict.
 Ours conflict.
@@ -279,12 +218,7 @@ Theirs conflict.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_input', 'j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
     local expected = [[
 Ours conflict.
 Theirs conflict.
@@ -301,12 +235,7 @@ Theirs conflict.]]
   it('Does not do anything if accepts both but cursor not at conflict', function()
     utils.open_file(nvim, fixture_file)
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'b', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_both_conflicts(nvim)
 
     local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
     eq('Regular text.\nOurs conflict.\nRegular text.', table.concat(result, '\n'))

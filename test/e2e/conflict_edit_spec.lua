@@ -449,12 +449,7 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
     -- Add sleep to wait for the command to finish.
     vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_conflict(nvim)
 
     local expected = [[
 Ours conflict.
@@ -500,12 +495,7 @@ Ours conflict.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
     -- Add sleep to wait for the command to finish.
     vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
+    utils.accept_conflict(nvim)
 
     local expected = [[
 Ours conflict.
@@ -569,13 +559,7 @@ Regular text.]]
     utils.open_file(nvim, fixture_file_empty)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local expected = [[
 Regular text.
 Regular text.]]
@@ -594,13 +578,7 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal j')
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     local expected = [[
 Regular text.
 Theirs conflict.

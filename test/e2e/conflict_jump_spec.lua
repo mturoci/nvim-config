@@ -56,13 +56,7 @@ describe('Conflict jumps', function()
     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
     eq(2, utils.get_current_line(nvim))
 
-    local leader_key = vim.fn.rpcrequest(nvim, 'nvim_eval', 'mapleader')
-    vim.fn.rpcrequest(nvim, 'nvim_feedkeys', vim.api.nvim_replace_termcodes(leader_key .. 'a', true, false, true), 'm',
-      true)
-
-    -- Add sleep to wait for the command to finish.
-    vim.fn.rpcrequest(nvim, 'nvim_command', 'sleep 100m')
-
+    utils.accept_conflict(nvim)
     vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
     eq(2, utils.get_current_line(nvim))
     vim.fn.rpcrequest(nvim, 'nvim_input', ']c')
