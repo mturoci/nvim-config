@@ -167,9 +167,6 @@ return {
 
       require("telescope").setup({
         pickers = {
-          live_grep = {
-            additional_args = function() return { "--max-count=1" } end
-          },
           find_files = {
             find_command = { "rg", "--files", "--hidden", "-g", "!**/.git/*", },
           },
