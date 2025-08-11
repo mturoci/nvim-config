@@ -592,4 +592,35 @@ Regular text.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
+
+  it('Updates right side whitespace offset properly when making left side longer #run', function()
+    utils.open_file(nvim, fixture_file_ours_longer)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+
+    local expected = [[
+Ours conflict.
+Ours conflict.
+Ours conflict.]]
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+Theirs conflict.
+
+]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+<<<<<<< HEAD
+Ours conflict.
+Ours conflict.
+Ours conflict.
+=======
+Theirs conflict.
+>>>>>>> another-branch]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
 end)
