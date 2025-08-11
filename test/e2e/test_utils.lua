@@ -1,5 +1,9 @@
 local M = {}
 
+M.ORIGINAL_BUFFER = 1
+M.LEFT_BUFFER = 2
+M.RIGHT_BUFFER = 3
+
 M.open_file = function(nvim, path)
   vim.fn.rpcrequest(nvim, 'nvim_command', 'edit ' .. path)
   -- Add sleep to wait for autocmds to be registered properly.

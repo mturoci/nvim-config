@@ -41,11 +41,11 @@ describe('Conflict editing', function()
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'iFoo bar', 'x', false)
 
     local expected = 'Foo barRegular text.\nOurs conflict.\nRegular text.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Foo barRegular text.\nTheirs conflict.\nRegular text.'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -56,7 +56,7 @@ Ours conflict.
 Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -65,11 +65,11 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dw')
 
     local expected = 'conflict.\nOurs conflict.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Theirs conflict.\n'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -79,7 +79,7 @@ Ours conflict.
 =======
 Theirs conflict.
 >>>>>>> another-branch]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -89,11 +89,11 @@ Theirs conflict.
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
 
     local expected = 'Ours conflict.\nOurs conflict.\nOurs conflict.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Theirs conflict.\n\n'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -104,7 +104,7 @@ Ours conflict.
 =======
 Theirs conflict.
 >>>>>>> another-branch]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -118,11 +118,11 @@ Theirs conflict.
       vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'oFoo bar', 'x', false)
 
       local expected = 'Regular text.\nTheirs conflict.\nRegular text.\nFoo bar'
-      local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+      local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
       eq(expected, table.concat(result, '\n'))
 
       expected = 'Regular text.\nOurs conflict.\nRegular text.\nFoo bar'
-      result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+      result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
       eq(expected, table.concat(result, '\n'))
 
       expected = [[
@@ -134,7 +134,7 @@ Theirs conflict.
 >>>>>>> another-branch
 Regular text.
 Foo bar]]
-      result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+      result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
       eq(expected, table.concat(result, '\n'))
     end)
 
@@ -146,11 +146,11 @@ Foo bar]]
     vim.fn.rpcrequest(nvim, 'nvim_feedkeys', 'iFoo bar', 'x', false)
 
     local expected = 'Regular text.\nFoo barOurs conflict.\nRegular text.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Regular text.\nTheirs conflict.\nRegular text.'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -161,7 +161,7 @@ Foo barOurs conflict.
 Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -174,11 +174,11 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
 
     local expected = 'Regular text.\nOurs conflict.\nOurs conflict.\nRegular text.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Regular text.\nTheirs conflict.\n\nRegular text.'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -190,7 +190,7 @@ Ours conflict.
 Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -203,7 +203,7 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
 
     local expected = 'Regular text.\nTheirs conflict.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -213,7 +213,7 @@ Ours conflict.
 =======
 Theirs conflict.
 >>>>>>> another-branch]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -236,7 +236,7 @@ Ours conflict.
 =======
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -249,11 +249,11 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd') -- Remove the conflict row
 
     local expected = 'Regular text.\n\nRegular text.'
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = 'Regular text.\nOurs conflict.\nRegular text.'
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -263,7 +263,7 @@ Ours conflict.
 =======
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -283,7 +283,7 @@ Ours conflict.
 Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -345,7 +345,7 @@ Regular text.]]
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal dd')
 
     local expected = "Regular text.\n\nRegular text."
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal u')
@@ -353,7 +353,7 @@ Regular text.]]
 Regular text.
 Ours conflict.
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -458,7 +458,7 @@ Ours conflict.
 
 Ours conflict.
 Ours conflict.]]
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -468,7 +468,7 @@ Theirs conflict.
 
 Ours conflict.
 Ours conflict.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -482,7 +482,7 @@ Theirs conflict.
 
 Ours conflict.
 Ours conflict.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -502,7 +502,7 @@ Ours conflict.
 Ours conflict.
 
 Theirs conflict.]]
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -510,7 +510,7 @@ Theirs conflict.
 Theirs conflict.
 
 Theirs conflict.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -523,7 +523,7 @@ Theirs conflict.
 >>>>>>> another-branch
 
 Theirs conflict.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -534,14 +534,14 @@ Theirs conflict.]]
 Regular text.
 
 Regular text.]]
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
 Regular text.
 Theirs conflict.
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
     expected = [[
@@ -551,7 +551,7 @@ Regular text.
 Theirs conflict.
 >>>>>>> another-branch
 Regular text.]]
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -563,13 +563,13 @@ Regular text.]]
     local expected = [[
 Regular text.
 Regular text.]]
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 
@@ -583,13 +583,13 @@ Regular text.]]
 Regular text.
 Theirs conflict.
 Regular text.]]
-    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 2, 0, -1, false)
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 3, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
 
-    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', 1, 0, -1, false)
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
 end)
