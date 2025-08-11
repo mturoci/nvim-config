@@ -593,7 +593,7 @@ Regular text.]]
     eq(expected, table.concat(result, '\n'))
   end)
 
-  it('Updates right side whitespace offset properly when making left side longer #run', function()
+  it('Updates right side whitespace offset properly when making left side longer', function()
     utils.open_file(nvim, fixture_file_ours_longer)
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
     vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
@@ -620,6 +620,46 @@ Ours conflict.
 =======
 Theirs conflict.
 >>>>>>> another-branch]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+  end)
+
+  it('Updates longer conflict, jumps to the right side next conflict and accepts it', function()
+    utils.open_file(nvim, fixture_file_multiple_ours_longer)
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal yy')
+    vim.fn.rpcrequest(nvim, 'nvim_command', 'normal p')
+    vim.fn.rpcrequest(nvim, 'nvim_input', '<C-W>w')
+    vim.fn.rpcrequest(nvim, 'nvim_input', '[c')
+    utils.accept_conflict(nvim)
+
+    local expected = [[
+Ours conflict.
+Ours conflict.
+Ours conflict.
+
+Theirs conflict.]]
+    local result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.LEFT_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+Theirs conflict.
+
+
+
+Theirs conflict.]]
+    result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.RIGHT_BUFFER, 0, -1, false)
+    eq(expected, table.concat(result, '\n'))
+
+    expected = [[
+<<<<<<< HEAD
+Ours conflict.
+Ours conflict.
+Ours conflict.
+=======
+Theirs conflict.
+>>>>>>> another-branch
+
+Theirs conflict.]]
     result = vim.fn.rpcrequest(nvim, 'nvim_buf_get_lines', utils.ORIGINAL_BUFFER, 0, -1, false)
     eq(expected, table.concat(result, '\n'))
   end)
