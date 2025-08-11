@@ -3,4 +3,3 @@
 * Figure out how to blacklist certain autocomplete suggestions - e.g. console log in JS.
 * Shortcut to open git line commit.
 * File history.
-* Handle empty conflict edgecase.
