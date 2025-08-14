@@ -170,6 +170,9 @@ return {
           find_files = {
             find_command = { "rg", "--files", "--hidden", "-g", "!**/.git/*", },
           },
+          live_grep = {
+            additional_args = function(_) return { "--hidden", "-g", "!**/.git/*" } end,
+          },
         },
         defaults = {
           mappings = {
