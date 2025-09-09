@@ -108,11 +108,10 @@ return {
           python = { "black" },
           php = { "blade-formatter" },
         },
-        format_on_save = {
-          lsp_fallback = true,
-          async = false,
-          timeout_ms = 1000,
-        },
+        format_on_save = function()
+          if vim.g.disable_autoformat then return end
+          return { lsp_fallback = true, async = false, timeout_ms = 1000, }
+        end,
       })
     end,
   },

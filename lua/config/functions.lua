@@ -335,4 +335,12 @@ function M.commit()
   vim.schedule(function() vim.api.nvim_win_set_cursor(0, { 1, 0 }) end)
 end
 
+function M.toggle_format_on_save()
+  if vim.g.disable_autoformat then
+    vim.g.disable_autoformat = false
+  else
+    vim.g.disable_autoformat = true
+  end
+end
+
 return M
