@@ -55,8 +55,8 @@ keymap('n', '<C-d>', '<C-d>zz', silent)
 keymap('n', '<C-o>', '<C-o>zz', silent)
 keymap('n', '<C-i>', '<C-i>zz', silent)
 keymap('n', '<leader>fe', ':luafile %<CR>', silent)
-keymap('n', ']q', ':cnext<CR>:redraw!<CR>', silent)
-keymap('n', '[q', ':cprev<CR>:redraw!<CR>', silent)
+keymap('n', ']q', ':cnext<CR>zz:redraw!<CR>', silent)
+keymap('n', '[q', ':cprev<CR>zz:redraw!<CR>', silent)
 
 -- LSP.
 vim.api.nvim_create_autocmd('LspAttach', {
